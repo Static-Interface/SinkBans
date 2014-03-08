@@ -1,0 +1,61 @@
+name: BanPlugin
+version: 1.0
+description: Ban Players!
+author: Trojaner
+website: http://static-interface.de
+main: de.static_interface.banplugin.BanPlugin
+soft-depend: [SinkLibrary]
+
+commands:
+  ban:
+    description: Allows to ban players
+    usage: "/<command> [player} <reason>"
+    permission: banplugin.ban
+
+  banip:
+    description: Allows to ban ips
+    usage: "/<command> [ip]"
+    permission: banplugin.ban
+
+  isbanned:
+    description: Allows to see why players are banned
+    usage: "/<command> [player>]
+    permission: banplugin.isbanned
+
+  tempban:
+    description: Allows to tempban players
+    usage: "/<command> [player] [time]"
+    permission: banplugin.tempban
+
+  unban:
+    description: Allows to unban players
+    usage: "/<command> [player]"
+    permission: banplugin.ban
+    aliases: pardon
+
+  unbanip:
+    description: Allows to unban ips
+    usage: "/<command> [ip]
+    permission: banplugin.ban
+    aliases: pardonip
+
+permissions:
+  banplugin.*:
+    description: Allows access to all ban commands
+    default: op
+    children:
+      banplugin.ban: true
+      banplugin.tempban: true
+      banplugin.isbanned: true
+
+  banplugin.ban:
+    description: Allows to ban players
+    default: op
+
+  banplugin.tempban:
+    description: Allows to temp ban players
+    default: op
+
+  banplugin.isbanned:
+    description: Allows to use the isBanned command
+    default: true

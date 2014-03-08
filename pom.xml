@@ -1,0 +1,48 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>de.static-interface</groupId>
+    <artifactId>Ban-Plugin</artifactId>
+    <packaging>pom</packaging>
+    <version>1.x</version>
+    <name>Ban Plugin</name>
+    <url>http://adventuria.eu</url>
+
+    <licenses>
+        <license>
+            <name>GNU General Public License Version 3</name>
+            <url>http://www.gnu.org/licenses</url>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>Adventuria Developer Team</name>
+        <url>http://adventuria.eu/</url>
+    </organization>
+
+   <ciManagement>
+        <system>Static Interface</system>
+        <url>http://ci.static-interface.de/</url>
+    </ciManagement>
+
+    <repositories>
+        <repository>
+            <id>bukkit-repo</id>
+            <url>http://repo.bukkit.org/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.bukkit</groupId>
+            <artifactId>bukkit</artifactId>
+            <version>1.7.2-R0.4-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+    <properties>
+        <jdk.version>1.7</jdk.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+</project>
