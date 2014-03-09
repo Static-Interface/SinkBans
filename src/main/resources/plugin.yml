@@ -19,7 +19,7 @@ commands:
 
   isbanned:
     description: Allows to see why players are banned
-    usage: "/<command> [player>]
+    usage: "/<command> [player]"
     permission: banplugin.isbanned
 
   tempban:
@@ -35,7 +35,7 @@ commands:
 
   unbanip:
     description: Allows to unban ips
-    usage: "/<command> [ip]
+    usage: "/<command> [ip]"
     permission: banplugin.ban
     aliases: pardonip
 
