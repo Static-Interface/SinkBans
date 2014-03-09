@@ -1,5 +1,7 @@
 package de.static_interface.banplugin;
 
+import org.bukkit.ChatColor;
+
 public class BanData
 {
 
@@ -10,7 +12,6 @@ public class BanData
 
     private String reason;
     private String playername;
-    private String unbanTimeStamp;
     private String ip;
     private String banner;
 
@@ -36,7 +37,7 @@ public class BanData
 
     public String getReason()
     {
-        return reason;
+        return ChatColor.RED + reason;
     }
 
     public long getUnbanTimestamp()
@@ -44,14 +45,14 @@ public class BanData
         return unbanTimestamp;
     }
 
-    public void setBanTimeStamp(String banTimeStamp)
+    public void setBanTimeStamp(long banTimeStamp)
     {
-        this.reason = banTimeStamp;
+        this.banTimestamp= banTimeStamp;
     }
 
-    public void setUnbanTimeStamp(String unbanTimeStamp)
+    public void setUnbanTimeStamp(long unbanTimestamp)
     {
-        this.unbanTimeStamp = unbanTimeStamp;
+        this.unbanTimestamp = unbanTimestamp;
     }
 
     public void setIp(String ip)

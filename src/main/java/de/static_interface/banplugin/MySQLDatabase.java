@@ -98,8 +98,8 @@ public class MySQLDatabase
             BanData data = new BanData(playername);
             data.setBanner(resultSet.getString("bannedby"));
             data.setReason(resultSet.getString("reason"));
-            data.setBanTimeStamp(resultSet.getString("bantimestamp"));
-            data.setUnbanTimeStamp(resultSet.getString("unbantimestamp"));
+            data.setBanTimeStamp(resultSet.getLong("bantimestamp"));
+            data.setUnbanTimeStamp(resultSet.getLong("unbantimestamp"));
             data.setIp(resultSet.getString("ip"));
             return data;
         }
@@ -112,6 +112,7 @@ public class MySQLDatabase
     public void ban(String playername, String reason, String banner) throws SQLException
     {
         long banTimeStamp = System.currentTimeMillis();
+        reason = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', reason));
         execute(String.format("INSERT INTO %s VALUES(NULL, '%s','%s','%s', '-1', '%s')", PLAYER_TABLE, playername, reason, banTimeStamp, banner));
     }
 
