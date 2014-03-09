@@ -25,11 +25,10 @@ public class MySQLDatabase
     {
         String query = String.format("CREATE TABLE IF NOT EXISTS %s (" +
                 "id INT NOT NULL AUTO_INCREMENT UNIQUE KEY, " +
-                "name VARCHAR(16) PRIMARY KEY NOT NULL, " +
+                "playername VARCHAR(16) PRIMARY KEY NOT NULL, " +
                 "reason TEXT CHARACTER SET utf8 NOT NULL, " +
                 "bantimestamp BIGINT NOT NULL, " +
                 "unbantimestamp BIGINT NOT NULL, " +
-                "isbanned BOOLEAN NOT NULL," +
                 "bannedby VARCHAR(16) NOT NULL"+
                 ");", PLAYER_TABLE);
         execute(query);
@@ -39,7 +38,6 @@ public class MySQLDatabase
                 "ip VARCHAR(15) PRIMARY KEY NOT NULL, " +
                 "reason TEXT CHARACTER SET utf8 NOT NULL, " +
                 "bantimestamp BIGINT NOT NULL, " +
-                "isbanned BOOLEAN NOT NULL, " +
                 "bannedby VARCHAR(16) NOT NULL"+
                 ");", IP_TABLE);
         execute(query);
@@ -57,27 +55,27 @@ public class MySQLDatabase
         return statment.executeQuery();
     }
 
-    public ArrayList<BanData> getBanData(String name, String ip) throws SQLException
+    public ArrayList<BanData> getBanData(String playername, String ip) throws SQLException
     {
-        ResultSet result = executeQuery(String.format("SELECT * FROM %s WHERE 'name' = '%s';", PLAYER_TABLE, name));
+        ResultSet result = executeQuery(String.format("SELECT * FROM %s WHERE playername = '%s';", PLAYER_TABLE, playername));
         ArrayList<BanData> entries = new ArrayList<>();
-        BanData data = getFromResultSet(result, name);
+        BanData data = getFromResultSet(result, playername);
         if (data != null)
             entries.add(data);
         while(result.next())
         {
-            data = getFromResultSet(result, name);
+            data = getFromResultSet(result, playername);
             if (data != null)
                 entries.add(data);
         }
-        result = executeQuery(String.format("SELECT * FROM %s WHERE 'ip' = '%s';", IP_TABLE, ip));
-        data = getFromResultSet(result, name);
+        result = executeQuery(String.format("SELECT * FROM %s WHERE ip = '%s';", IP_TABLE, ip));
+        data = getFromResultSet(result, playername);
         if (data != null)
             entries.add(data);
 
         while(result.next())
         {
-            data = getFromResultSet(result, name);
+            data = getFromResultSet(result, playername);
             if (data != null)
                 entries.add(data);
         }
@@ -85,10 +83,12 @@ public class MySQLDatabase
         return entries;
     }
 
-    public BanData getBanData(String name) throws SQLException
+    public BanData getBanData(String searchString, boolean ip) throws SQLException
     {
-        ResultSet result = executeQuery(String.format("SELECT * FROM %s WHERE 'name' = '%s' OR 'ip' = '%s';", PLAYER_TABLE, name, name));
-        return getFromResultSet(result, name);
+        ResultSet result = ip
+                ? executeQuery(String.format("SELECT * FROM %s WHERE ip = '%s';", IP_TABLE, searchString))
+                : executeQuery(String.format("SELECT * FROM %s WHERE playername = '%s';", PLAYER_TABLE, searchString));
+        return getFromResultSet(result, searchString);
     }
 
     public BanData getFromResultSet(ResultSet resultSet, String playername)
@@ -96,7 +96,6 @@ public class MySQLDatabase
         try
         {
             BanData data = new BanData(playername);
-            data.setBanned(resultSet.getBoolean("isbanned"));
             data.setBanner(resultSet.getString("bannedby"));
             data.setReason(resultSet.getString("reason"));
             data.setBanTimeStamp(resultSet.getString("bantimestamp"));
@@ -108,7 +107,6 @@ public class MySQLDatabase
         {
             return null;
         }
-
     }
 
     public void ban(String playername, String reason, String banner) throws SQLException
@@ -132,11 +130,11 @@ public class MySQLDatabase
 
     public void unban(String playername) throws SQLException
     {
-        execute(String.format("UPDATE %s SET isbanned = 0, unbantimestamp = 0 WHERE 'name' = '%s';" , PLAYER_TABLE, playername));
+        execute(String.format("DELETE FROM %s WHERE playername = '%s';", PLAYER_TABLE, playername));
     }
 
     public void unbanIp(String ip) throws SQLException
     {
-        execute(String.format("UPDATE %s SET isbanned = 0 WHERE 'ip' = '%s';", IP_TABLE, ip));
+        execute(String.format("DELETE FROM %s WHERE ip = '%s';", IP_TABLE, ip));
     }
 }
