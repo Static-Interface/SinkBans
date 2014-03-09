@@ -43,7 +43,7 @@ public class UnbanCommand implements CommandExecutor
             return true;
         }
 
-        BukkitUtil.broadcastMessage(ChatColor.GOLD + prefix + " hat " + targetName + " entsperrt.", true);
+        BukkitUtil.broadcastMessage(ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " entsperrt.", true);
 
         return true;
     }

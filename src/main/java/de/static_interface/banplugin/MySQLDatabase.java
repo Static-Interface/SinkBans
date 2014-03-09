@@ -83,9 +83,9 @@ public class MySQLDatabase
         return entries;
     }
 
-    public BanData getBanData(String searchString, boolean ip) throws SQLException
+    public BanData getBanData(String searchString, boolean isIp) throws SQLException
     {
-        ResultSet result = ip
+        ResultSet result = isIp
                 ? executeQuery(String.format("SELECT * FROM %s WHERE ip = '%s';", IP_TABLE, searchString))
                 : executeQuery(String.format("SELECT * FROM %s WHERE playername = '%s';", PLAYER_TABLE, searchString));
         return getFromResultSet(result, searchString);
@@ -112,20 +112,20 @@ public class MySQLDatabase
     public void ban(String playername, String reason, String banner) throws SQLException
     {
         long banTimeStamp = System.currentTimeMillis();
-        execute(String.format("INSERT INTO %s VALUES(NULL, '%s','%s','%s', '-1', '1', '%s')", PLAYER_TABLE, playername, reason, banTimeStamp, banner));
+        execute(String.format("INSERT INTO %s VALUES(NULL, '%s','%s','%s', '-1', '%s')", PLAYER_TABLE, playername, reason, banTimeStamp, banner));
     }
 
     public void banIp(String ip, String banner) throws SQLException
     {
         long banTimeStamp = System.currentTimeMillis();
-        execute(String.format("INSERT INTO %s VALUES(NULL, '%s','%s', '1', '%s')", IP_TABLE, ip, banTimeStamp, banner));
+        execute(String.format("INSERT INTO %s VALUES(NULL, '%s','%s', '%s')", IP_TABLE, ip, banTimeStamp, banner));
     }
 
     public void tempBan(String playername, long unbanTimestamp, String banner) throws SQLException
     {
         String reason = ChatColor.DARK_RED + "";
         long banTimeStamp = System.currentTimeMillis();
-        execute(String.format("INSERT INTO %s VALUES(NULL, '%s', '%s', '%s','%s', '%s', '1', '%s')", PLAYER_TABLE, playername, reason, banTimeStamp, reason, unbanTimestamp, banner));
+        execute(String.format("INSERT INTO %s VALUES(NULL, '%s', '%s', '%s','%s', '%s', '%s')", PLAYER_TABLE, playername, reason, banTimeStamp, reason, unbanTimestamp, banner));
     }
 
     public void unban(String playername) throws SQLException

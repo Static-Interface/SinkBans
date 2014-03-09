@@ -49,11 +49,11 @@ public class IsBannedCommand implements CommandExecutor
         }
         catch ( SQLException ignored ) { }
 
-        String reason = ip ? ChatColor.RED + "Zeitlich gesperrt vom Server fuer " + DateUtil.formatDateDiff(data.getUnbanTimestamp())
-                    : data.getReason();
-
         if (data != null && (data.isBanned() || data.isTempBanned()) )
         {
+            String reason = data.isTempBanned() ? ChatColor.RED + "Zeitlich gesperrt vom Server fuer " + DateUtil.formatDateDiff(data.getUnbanTimestamp())
+                    : data.getReason();
+
             sender.sendMessage(ChatColor.GOLD + prefix + ChatColor.RED + search + ChatColor.GOLD +
                     " wurde von " + ChatColor.DARK_RED + data.getBanner() + ChatColor.GOLD + " gebannt: " + reason);
         }
