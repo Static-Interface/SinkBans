@@ -1,5 +1,5 @@
 name: BanPlugin
-version: 1.0
+version: ${project.version}
 description: Ban Players!
 author: Trojaner
 website: http://static-interface.de
