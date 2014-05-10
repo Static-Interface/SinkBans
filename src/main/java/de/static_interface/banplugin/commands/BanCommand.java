@@ -64,7 +64,7 @@ public class BanCommand implements CommandExecutor
             return true;
         }
 
-        BukkitUtil.broadcastMessage(ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD  + " gesperrt: " + reason, true);
+        BukkitUtil.broadcastMessage(ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD  + " gesperrt:" + reason.trim(), true);
 
         return true;
     }

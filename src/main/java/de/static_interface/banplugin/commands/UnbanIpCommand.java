@@ -34,7 +34,7 @@ public class UnbanIpCommand implements CommandExecutor
 
         try
         {
-            db.unbanIp(ip);
+            db.unbanIp(ip, user.getName());
         }
         catch ( SQLException e )
         {
@@ -43,7 +43,7 @@ public class UnbanIpCommand implements CommandExecutor
             return true;
         }
 
-        BukkitUtil.broadcastMessage(ChatColor.GOLD + prefix + " hat die IP " + ip + " entsperrt.", true);
+        BukkitUtil.broadcastMessage(ChatColor.GOLD + prefix + ChatColor.GOLD + " hat die IP "+ ChatColor.RED + ip + ChatColor.GOLD + " entsperrt.", true);
 
         return true;
     }

@@ -19,7 +19,7 @@ commands:
 
   isbanned:
     description: Allows to see why players are banned
-    usage: "/<command> [player]"
+    usage: "/<command> [player/ip]"
     permission: banplugin.isbanned
 
   tempban:
@@ -59,3 +59,7 @@ permissions:
   banplugin.isbanned:
     description: Allows to use the isBanned command
     default: true
+
+  banplugin.notification:
+    description: Allows to receive messages if someone is trying to join when banned
+    default: op

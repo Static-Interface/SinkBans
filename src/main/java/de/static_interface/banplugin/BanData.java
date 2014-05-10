@@ -25,6 +25,11 @@ public class BanData
         return isBanned;
     }
 
+    public boolean isPermaBanned()
+    {
+        return unbanTimestamp == -1;
+    }
+
     public boolean isTempBanned()
     {
         return unbanTimestamp > 0;

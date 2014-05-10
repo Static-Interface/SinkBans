@@ -64,9 +64,9 @@ public class TempBanCommand implements CommandExecutor
             e.printStackTrace();
         }
 
-        BukkitUtil.broadcastMessage(ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " gesperrt: " + reason, true);
+        BukkitUtil.broadcastMessage(ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " gesperrt: " + reason.trim(), true);
 
-        return false;
+        return true;
     }
 
     public static String getFinalArg(final String[] args, final int start)

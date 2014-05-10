@@ -34,7 +34,7 @@ public class UnbanCommand implements CommandExecutor
 
         try
         {
-            db.unban(targetName);
+            db.unban(targetName, user.getName());
         }
         catch ( SQLException e )
         {
