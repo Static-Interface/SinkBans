@@ -37,7 +37,15 @@
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
-            <version>1.7.2-R0.4-SNAPSHOT</version>
+            <version>1.7.9-R0.1-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>de.static_interface</groupId>
+            <artifactId>SinkLibrary</artifactId>
+            <version>1.9</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/SinkLibrary-1.9.jar</systemPath>
         </dependency>
     </dependencies>
 
