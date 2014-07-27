@@ -1,9 +1,12 @@
 package de.static_interface.banplugin;
 
+import de.static_interface.sinklibrary.SinkLibrary;
 import org.bukkit.ChatColor;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class MySQLDatabase
 {
@@ -25,21 +28,23 @@ public class MySQLDatabase
     {
         String query = String.format("CREATE TABLE IF NOT EXISTS %s (" +
                 "id INT NOT NULL AUTO_INCREMENT UNIQUE KEY, " +
-                "playername VARCHAR(16) PRIMARY KEY NOT NULL, " +
+                "playername VARCHAR(16) NOT NULL, " +
                 "reason TEXT CHARACTER SET utf8 NOT NULL, " +
                 "bantimestamp BIGINT NOT NULL, " +
                 "unbantimestamp BIGINT NOT NULL, " +
                 "isbanned TINYINT(0) NOT NULL, " +
                 "bannedby VARCHAR(16) NOT NULL, "+
-                "unbannedby VARCHAR(16)" +
+                "unbannedby VARCHAR(16), " +
+                "uuid VARCHAR(36) NOT NULL" + //16 Bytes * 2 + 4
                 ");", PLAYER_TABLE);
         execute(query);
 
         query = String.format("CREATE TABLE IF NOT EXISTS %s (" +
                 "id INT NOT NULL AUTO_INCREMENT UNIQUE KEY, " +
-                "ip VARCHAR(15) NOT NULL PRIMARY KEY NOT NULL, " +
+                "ip VARCHAR(15) NOT NULL, " +
                 "reason TEXT CHARACTER SET utf8 NOT NULL, " +
                 "bantimestamp BIGINT NOT NULL, " +
+                "unbantimestamp BIGINT NOT NULL, " +
                 "isbanned TINYINT(0) NOT NULL, " +
                 "bannedby VARCHAR(16) NOT NULL, "+
                 "unbannedby VARCHAR(16)" +
@@ -59,98 +64,113 @@ public class MySQLDatabase
         return statment.executeQuery();
     }
 
-    public ArrayList<BanData> getBanData(String playername, String ip) throws SQLException
+    //public ArrayList<BanData> getBanData(String playername, String ip) throws SQLException
+    //{
+    //    ResultSet result = executeQuery(String.format("SELECT * FROM %s", PLAYER_TABLE)); // WHERE playername = '%s';", PLAYER_TABLE, playername));
+    //    ArrayList<BanData> entries = new ArrayList<>();
+    //    BanData data = getFromResultSet(result, playername, false);
+    //    if (data != null)
+    //        entries.add(data);
+    //    while(result.next())
+    //    {
+    //        data = getFromResultSet(result, playername, false);
+    //        if (data != null)
+    //            entries.add(data);
+    //    }
+    //    result = executeQuery(String.format("SELECT * FROM %s", IP_TABLE)); // WHERE ip = '%s';", IP_TABLE, ip));
+    //    data = getFromResultSet(result, true);
+    //    if (data != null)
+    //        entries.add(data);
+    //
+    //    while(result.next())
+    //    {
+    //        data = getFromResultSet(result, true).get(0);
+    //        if (data != null)
+    //            entries.add(data);
+    //    }
+    //
+    //    return entries;
+    //}
+
+    public void fixOldBans() throws SQLException
     {
-        ResultSet result = executeQuery(String.format("SELECT * FROM %s", PLAYER_TABLE)); // WHERE playername = '%s';", PLAYER_TABLE, playername));
-        ArrayList<BanData> entries = new ArrayList<>();
-        BanData data = getFromResultSet(result, playername, false);
-        if (data != null)
-            entries.add(data);
-        while(result.next())
-        {
-            data = getFromResultSet(result, playername, false);
-            if (data != null)
-                entries.add(data);
-        }
-        result = executeQuery(String.format("SELECT * FROM %s", IP_TABLE)); // WHERE ip = '%s';", IP_TABLE, ip));
-        data = getFromResultSet(result, playername, true);
-        if (data != null)
-            entries.add(data);
+        ResultSet result = executeQuery(String.format("SELECT * FROM %s WHERE uuid=NULL", PLAYER_TABLE));
+        List<BanData> entries = getFromResultSet(result, false);
 
-        while(result.next())
+        for(BanData entry : entries)
         {
-            data = getFromResultSet(result, playername, true);
-            if (data != null)
-                entries.add(data);
+            UUID uuid = SinkLibrary.getUser(entry.getName()).getUniqueId();
+            execute(String.format("UPDATE %s SET uuid = '%s' WHERE playername = '%s'", PLAYER_TABLE, uuid.toString(), entry.getName()));
         }
 
-        return entries;
     }
 
     public BanData getBanData(String searchString, boolean isIp) throws SQLException
     {
         String query = isIp
                 ? String.format("SELECT * FROM %s WHERE ip = '%s';", IP_TABLE, searchString)
-                : String.format("SELECT * FROM %s WHERE playername = '%s';", PLAYER_TABLE, searchString);
+                : String.format("SELECT * FROM %s WHERE uuid = '%s';", PLAYER_TABLE, searchString);
 
         //Bukkit.getLogger().log(Level.INFO, "[Debug]: Executing Query:");
         //Bukkit.getLogger().log(Level.INFO, query);
 
         ResultSet result = executeQuery(query);
-        return getFromResultSet(result, searchString, isIp);
+        return getFromResultSet(result, isIp).get(0);
     }
 
-    public BanData getFromResultSet(ResultSet resultSet, String playername, boolean isIp)
+    public List<BanData> getFromResultSet(ResultSet resultSet, boolean isIp)
     {
+        ArrayList<BanData> tmp = new ArrayList<>();
         try
         {
-            if (resultSet.next())
+            while (resultSet.next())
             {
-                BanData data = new BanData(playername);
+                BanData data = new BanData(isIp ? resultSet.getString("playername") : resultSet.getString("ip"));
                 data.setBanner(resultSet.getString("bannedby"));
                 data.setReason(resultSet.getString("reason"));
                 data.setBanTimeStamp(resultSet.getLong("bantimestamp"));
-                if (!isIp) data.setUnbanTimeStamp(resultSet.getLong("unbantimestamp"));
+                data.setUnbanTimeStamp(resultSet.getLong("unbantimestamp"));
                 if (isIp) data.setIp(resultSet.getString("ip"));
                 data.setBanned(resultSet.getBoolean("isbanned"));
-                return data;
+                data.setUniqueId(UUID.fromString(resultSet.getString("uuid")));
+                tmp.add(data);
             }
         }
         catch(SQLException e)
         {
             e.printStackTrace();
         }
-        return null;
+        return tmp;
     }
 
-    public void ban(String playername, String reason, String bannedby) throws SQLException
+    public void ban(String playername, String reason, String bannedby, UUID uuid) throws SQLException
     {
         long banTimeStamp = System.currentTimeMillis();
         reason = reason.trim();
         reason = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', reason));
         try
         {
-            execute(String.format("INSERT INTO %s VALUES(NULL, '%s','%s','%s', '-1', '1', '%s', NULL)", PLAYER_TABLE, playername, reason, banTimeStamp, bannedby));
+            execute(String.format("INSERT INTO %s VALUES(NULL, '%s','%s','%s', '-1', '1', '%s', NULL, '%s')", PLAYER_TABLE, playername, reason, banTimeStamp, bannedby, uuid.toString()));
         }
         catch(Exception e) //Already added
         {
-            execute(String.format("UPDATE %s SET reason = '%s', bantimestamp = '%s', unbantimestamp = -1, isbanned = 1, bannedby = '%s', unbannedby = NULL WHERE playername = '%s'", PLAYER_TABLE, reason, banTimeStamp, bannedby, playername));
+            execute(String.format("UPDATE %s SET reason = '%s', bantimestamp = '%s', unbantimestamp = '-1', isbanned = 1, bannedby = '%s', unbannedby = NULL, uuid = '%s' WHERE playername = '%s'", PLAYER_TABLE, reason, banTimeStamp, bannedby, uuid.toString(), playername));
         }
 
     }
 
-    public void tempBan(String playername, long unbanTimestamp, String bannedby) throws SQLException
+    public void tempBan(String playername, long unbanTimestamp, String bannedby, UUID uuid) throws SQLException
     {
-
-        String reason = "Zeitlich gesperrt vom Server fuer " + DateUtil.formatDateDiff(unbanTimestamp);
         long banTimeStamp = System.currentTimeMillis();
         try
         {
-            execute(String.format("INSERT INTO %s VALUES(NULL, '%s', '%s', '%s', '%s', '1', '%s', NULL)", PLAYER_TABLE, playername, reason, banTimeStamp, unbanTimestamp, bannedby));
+            execute(String.format("INSERT INTO %s VALUES(NULL, '%s', NULL, '%s', '%s', '1', '%s', NULL, '%s')",
+                    PLAYER_TABLE, playername, banTimeStamp, unbanTimestamp, bannedby, uuid.toString()));
         }
         catch(Exception e) // Already added?
         {
-            execute(String.format("UPDATE %s SET reason = '%s', bantimestamp = '%s', unbantimestamp = '%s', isbanned = 1, bannedby = '%s', unbannedby = NULL WHERE playername = '%s'", PLAYER_TABLE, reason, banTimeStamp, unbanTimestamp, bannedby, playername));
+            execute(String.format("UPDATE %s SET reason = NULL, bantimestamp = '%s', unbantimestamp = '%s', isbanned = 1, bannedby = '%s', unbannedby = NULL, uuid = '%s' WHERE playername = '%s'",
+                    PLAYER_TABLE, banTimeStamp, unbanTimestamp, bannedby, uuid.toString(), playername));
         }
     }
 
@@ -161,11 +181,13 @@ public class MySQLDatabase
 
         try
         {
-            execute(String.format("INSERT INTO %s VALUES(NULL, '%s', '%s', '%s', '1', '%s', NULL)", IP_TABLE, ip, reason, banTimeStamp, bannedby));
+            execute(String.format("INSERT INTO %s VALUES(NULL, '%s', '%s', '%s', '-1', '1', '%s', NULL)",
+                    IP_TABLE, ip, reason, banTimeStamp, bannedby));
         }
         catch(Exception e) //Already added?
         {
-            execute(String.format("UPDATE %s SET reason = '%s', bantimestamp = '%s', isbanned = 1, bannedby = '%s', unbannedby = NULL WHERE ip = '%s'", IP_TABLE, reason, banTimeStamp, bannedby, ip));
+            execute(String.format("UPDATE %s SET reason = '%s', bantimestamp = '%s',  unbantimestamp = '-1', isbanned = 1, bannedby = '%s', unbannedby = NULL WHERE ip = '%s'",
+                    IP_TABLE, reason, banTimeStamp, bannedby, ip));
         }
     }
 
@@ -182,6 +204,6 @@ public class MySQLDatabase
 
     public void unbanIp(String ip, String unbannedby) throws SQLException
     {
-        execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = '%s' WHERE ip = '%s';", IP_TABLE, unbannedby, ip));
+        execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = '%s', unbantimestamp = '%s' WHERE ip = '%s';", IP_TABLE, unbannedby, System.currentTimeMillis(), ip));
     }
 }

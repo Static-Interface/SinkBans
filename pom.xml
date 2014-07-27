@@ -2,7 +2,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>de.static-interface</groupId>
+    <groupId>de.static_interface</groupId>
     <artifactId>Ban-Plugin</artifactId>
     <packaging>pom</packaging>
     <version>1.1</version>
@@ -31,6 +31,14 @@
             <id>bukkit-repo</id>
             <url>http://repo.bukkit.org/content/repositories/snapshots/</url>
         </repository>
+        <repository>
+            <id>sink-plugins-repo</id>
+            <url>https://raw.github.com/Adventuria/Sink-Plugins/mvn-repo/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -43,9 +51,7 @@
         <dependency>
             <groupId>de.static_interface</groupId>
             <artifactId>SinkLibrary</artifactId>
-            <version>1.9</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/libs/SinkLibrary-1.9.jar</systemPath>
+            <version>1.9.8.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
@@ -58,7 +64,7 @@
         <defaultGoal>clean install</defaultGoal>
         <sourceDirectory>src/main/java</sourceDirectory>
         <!--<testSourceDirectory>src/test/java</testSourceDirectory>-->
-        <finalName>${artifactId}</finalName>
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

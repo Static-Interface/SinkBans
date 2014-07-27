@@ -4,6 +4,8 @@ import de.static_interface.banplugin.commands.*;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.sql.SQLException;
+
 public class BanPlugin extends JavaPlugin
 {
     MySQLDatabase db;
@@ -19,6 +21,14 @@ public class BanPlugin extends JavaPlugin
         }
         registerCommands();
         Bukkit.getPluginManager().registerEvents(new EventListener(db), this);
+        try
+        {
+            db.fixOldBans();
+        }
+        catch ( SQLException e )
+        {
+            e.printStackTrace();
+        }
     }
 
     private void registerCommands()

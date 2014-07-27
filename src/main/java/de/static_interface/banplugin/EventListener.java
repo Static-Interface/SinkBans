@@ -24,11 +24,12 @@ public class EventListener implements Listener
     {
         BanData data;
 
+        //Todo: log every damn ip with uuid as key and playername
         String ip = Util.getIp(event.getAddress());
 
         try
         {
-            data = database.getBanData(event.getName(), false);
+            data = database.getBanData(event.getUniqueId().toString(), false);
             if (isBanned(data, event))
             {
                 Bukkit.getLogger().log(Level.INFO, "[DEBUG] Current Timestamp: " + System.currentTimeMillis() + ", Unban Timestamp: " + data.getUnbanTimestamp());
@@ -58,6 +59,7 @@ public class EventListener implements Listener
         {
             e.printStackTrace();
         }
+
     }
 
     public boolean isBanned(BanData data, AsyncPlayerPreLoginEvent event)

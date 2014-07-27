@@ -3,24 +3,32 @@ package de.static_interface.banplugin.commands;
 import de.static_interface.banplugin.BanData;
 import de.static_interface.banplugin.DateUtil;
 import de.static_interface.banplugin.MySQLDatabase;
+import de.static_interface.banplugin.Util;
+import de.static_interface.sinklibrary.SinkLibrary;
+import de.static_interface.sinklibrary.commands.Command;
 import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.Plugin;
 
 import java.sql.SQLException;
-import java.util.regex.Pattern;
 
-public class IsBannedCommand implements CommandExecutor
+public class IsBannedCommand extends Command
 {
     private MySQLDatabase db;
-    public IsBannedCommand(MySQLDatabase db)
+    public IsBannedCommand(Plugin plugin, MySQLDatabase db)
     {
+        super(plugin);
         this.db = db;
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args)
+    public boolean isIrcOpOnly()
+    {
+        return true;
+    }
+
+    @Override
+    public boolean onExecute(CommandSender sender, String label, String[] args)
     {
         BanData data = null;
 
@@ -31,12 +39,13 @@ public class IsBannedCommand implements CommandExecutor
 
         String search = args[0];
 
-        String pattern = "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}";
-
-        boolean ip = Pattern.matches(pattern, search);
+        boolean ip = Util.isValidIp(search);
 
         String prefix = ip ? "Die IP " : "Spieler ";
-
+        if(!ip)
+        {
+            search = SinkLibrary.getUser(search).getUniqueId().toString();
+        }
         try
         {
             data = db.getBanData(search, ip);

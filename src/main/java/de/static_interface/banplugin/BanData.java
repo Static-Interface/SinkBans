@@ -2,6 +2,8 @@ package de.static_interface.banplugin;
 
 import org.bukkit.ChatColor;
 
+import java.util.UUID;
+
 public class BanData
 {
 
@@ -14,6 +16,8 @@ public class BanData
     private String playername;
     private String ip;
     private String banner;
+    private UUID uuid;
+
 
     public BanData(String playername)
     {
@@ -85,8 +89,18 @@ public class BanData
         this.banner = banner;
     }
 
-    public Object getName()
+    public String getName()
     {
         return playername;
+    }
+
+    public void setUniqueId(UUID uuid)
+    {
+        this.uuid = uuid;
+    }
+
+    public UUID getUniqueId()
+    {
+        return uuid;
     }
 }

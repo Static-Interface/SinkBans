@@ -3,24 +3,31 @@ package de.static_interface.banplugin.commands;
 import de.static_interface.banplugin.MySQLDatabase;
 import de.static_interface.sinklibrary.BukkitUtil;
 import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinklibrary.User;
+import de.static_interface.sinklibrary.SinkUser;
+import de.static_interface.sinklibrary.commands.Command;
 import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.Plugin;
 
 import java.sql.SQLException;
 
-public class BanCommand implements CommandExecutor
+public class BanCommand extends Command
 {
     private MySQLDatabase db;
-    public BanCommand(MySQLDatabase db)
+    public BanCommand(Plugin plugin, MySQLDatabase db)
     {
+        super(plugin);
         this.db = db;
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
+    public boolean isIrcOpOnly()
+    {
+        return true;
+    }
+
+    @Override
+    public boolean onExecute(CommandSender sender, String label, String[] args)
     {
         if (args.length < 1)
         {
@@ -40,11 +47,10 @@ public class BanCommand implements CommandExecutor
 
         reason = ChatColor.RED + reason;
 
-        User user = SinkLibrary.getUser(sender);
-        User target = SinkLibrary.getUser(args[0]);
+        SinkUser target = SinkLibrary.getUser(args[0]);
 
         String targetName = target.isOnline() ? target.getName() : args[0];
-        String prefix = user.isConsole() ? BukkitUtil.getSenderName(sender) : "Spieler " + user.getDisplayName();
+        String prefix = BukkitUtil.getSenderName(sender);
 
         String reasonPrefix = ChatColor.DARK_RED + "Gesperrt: ";
 
@@ -55,12 +61,12 @@ public class BanCommand implements CommandExecutor
 
         try
         {
-            db.ban(target.getName(), reason, user.getName());
+            db.ban(target.getName(), reason, sender.getName(), target.getUniqueId());
         }
         catch ( SQLException e )
         {
             e.printStackTrace();
-            user.sendMessage(ChatColor.DARK_RED + "Ein Fehler ist aufgetreten!");
+            sender.sendMessage(ChatColor.DARK_RED + "Ein Fehler ist aufgetreten!");
             return true;
         }
 

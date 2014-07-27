@@ -2,44 +2,47 @@ package de.static_interface.banplugin.commands;
 
 import de.static_interface.banplugin.MySQLDatabase;
 import de.static_interface.sinklibrary.BukkitUtil;
-import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinklibrary.User;
+import de.static_interface.sinklibrary.commands.Command;
 import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.Plugin;
 
 import java.sql.SQLException;
 
-public class UnbanCommand implements CommandExecutor
+public class UnbanCommand extends Command
 {
     private MySQLDatabase db;
-    public UnbanCommand(MySQLDatabase db)
+    public UnbanCommand(Plugin plugin, MySQLDatabase db)
     {
+        super(plugin);
         this.db = db;
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
+    public boolean isIrcOpOnly()
+    {
+        return true;
+    }
+
+    @Override
+    public boolean onExecute(CommandSender sender, String label, String[] args)
     {
         if (args.length < 1)
         {
             return false;
         }
 
-        User user = SinkLibrary.getUser(sender);
-
         String targetName = args[0];
-        String prefix = user.isConsole() ? BukkitUtil.getSenderName(sender) : "Spieler " + user.getDisplayName();
+        String prefix = BukkitUtil.getSenderName(sender);
 
         try
         {
-            db.unban(targetName, user.getName());
+            db.unban(targetName, sender.getName());
         }
         catch ( SQLException e )
         {
             e.printStackTrace();
-            user.sendMessage(ChatColor.DARK_RED + "Ein Fehler ist aufgetreten!");
+            sender.sendMessage(ChatColor.DARK_RED + "Ein Fehler ist aufgetreten!");
             return true;
         }
 
