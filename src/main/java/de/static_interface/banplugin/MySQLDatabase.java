@@ -120,9 +120,6 @@ public class MySQLDatabase
                 ? String.format("SELECT * FROM %s WHERE ip = '%s';", IP_TABLE, searchString)
                 : String.format("SELECT * FROM %s WHERE uuid = '%s';", PLAYER_TABLE, searchString);
 
-        //Bukkit.getLogger().log(Level.INFO, "[Debug]: Executing Query:");
-        //Bukkit.getLogger().log(Level.INFO, query);
-
         ResultSet result = executeQuery(query);
         List<BanData> banResult = getFromResultSet(result, isIp);
         if(banResult.size() > 0)
@@ -130,12 +127,12 @@ public class MySQLDatabase
         return null;
     }
 
-    public List<BanData> getFromResultSet(ResultSet resultSet, boolean isIp)
+    public List<BanData> getFromResultSet(ResultSet resultSet, boolean isIp) throws SQLException
     {
         ArrayList<BanData> tmp = new ArrayList<>();
-        try
+        while (resultSet.next())
         {
-            while (resultSet.next())
+            try
             {
                 BanData data = new BanData(isIp ? resultSet.getString("ip") : resultSet.getString("playername"));
                 data.setBanner(resultSet.getString("bannedby"));
@@ -147,10 +144,10 @@ public class MySQLDatabase
                 data.setUniqueId(UUID.fromString(resultSet.getString("uuid")));
                 tmp.add(data);
             }
-        }
-        catch(SQLException e)
-        {
-            e.printStackTrace();
+            catch(SQLException e)
+            {
+                e.printStackTrace();
+            }
         }
         return tmp;
     }
@@ -160,46 +157,21 @@ public class MySQLDatabase
         long banTimeStamp = System.currentTimeMillis();
         reason = reason.trim();
         reason = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', reason));
-        try
-        {
-            execute(String.format("INSERT INTO %s VALUES(NULL, '%s','%s','%s', '-1', '1', '%s', NULL, '%s')", PLAYER_TABLE, playername, reason, banTimeStamp, bannedby, uuid.toString()));
-        }
-        catch(Exception e) //Already added
-        {
-            execute(String.format("UPDATE %s SET reason = '%s', bantimestamp = '%s', unbantimestamp = '-1', isbanned = 1, bannedby = '%s', unbannedby = NULL, uuid = '%s' WHERE playername = '%s'", PLAYER_TABLE, reason, banTimeStamp, bannedby, uuid.toString(), playername));
-        }
-
+        execute(String.format("INSERT INTO %s VALUES(NULL, '%s','%s','%s', '-1', '1', '%s', NULL, '%s')", PLAYER_TABLE, playername, reason, banTimeStamp, bannedby, uuid.toString()));
     }
 
     public void tempBan(String playername, long unbanTimestamp, String bannedby, UUID uuid) throws SQLException
     {
         long banTimeStamp = System.currentTimeMillis();
-        try
-        {
-            execute(String.format("INSERT INTO %s VALUES(NULL, '%s', NULL, '%s', '%s', '1', '%s', NULL, '%s')",
+        execute(String.format("INSERT INTO %s VALUES(NULL, '%s', NULL, '%s', '%s', '1', '%s', NULL, '%s')",
                     PLAYER_TABLE, playername, banTimeStamp, unbanTimestamp, bannedby, uuid.toString()));
-        }
-        catch(Exception e) // Already added?
-        {
-            execute(String.format("UPDATE %s SET reason = NULL, bantimestamp = '%s', unbantimestamp = '%s', isbanned = 1, bannedby = '%s', unbannedby = NULL, uuid = '%s' WHERE playername = '%s'",
-                    PLAYER_TABLE, banTimeStamp, unbanTimestamp, bannedby, uuid.toString(), playername));
-        }
     }
 
     public void banIp(String ip, String bannedby) throws SQLException
     {
         long banTimeStamp = System.currentTimeMillis();
-
-        try
-        {
-            execute(String.format("INSERT INTO %s VALUES(NULL, '%s', '%s', '-1', '1', '%s', NULL)",
+        execute(String.format("INSERT INTO %s VALUES(NULL, '%s', '%s', '-1', '1', '%s', NULL)",
                     IP_TABLE, ip, banTimeStamp, bannedby));
-        }
-        catch(Exception e) //Already added?
-        {
-            execute(String.format("UPDATE %s SET bantimestamp = '%s',  unbantimestamp = '-1', isbanned = 1, bannedby = '%s', unbannedby = NULL WHERE ip = '%s'",
-                    IP_TABLE, banTimeStamp, bannedby, ip));
-        }
     }
 
     public void unban(String playername, String unbannedby) throws SQLException
