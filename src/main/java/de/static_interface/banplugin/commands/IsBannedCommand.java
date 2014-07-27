@@ -4,7 +4,7 @@ import de.static_interface.banplugin.BanData;
 import de.static_interface.banplugin.DateUtil;
 import de.static_interface.banplugin.MySQLDatabase;
 import de.static_interface.banplugin.Util;
-import de.static_interface.sinklibrary.SinkLibrary;
+import de.static_interface.sinklibrary.BukkitUtil;
 import de.static_interface.sinklibrary.commands.Command;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -44,7 +44,7 @@ public class IsBannedCommand extends Command
         String prefix = ip ? "Die IP " : "Spieler ";
         if(!ip)
         {
-            search = SinkLibrary.getUser(search).getUniqueId().toString();
+            search = BukkitUtil.getUUIDByName(search).toString();
         }
         try
         {
@@ -57,7 +57,7 @@ public class IsBannedCommand extends Command
             String reason = data.isTempBanned() ? ChatColor.RED + "Zeitlich gesperrt vom Server fuer " + DateUtil.formatDateDiff(data.getUnbanTimestamp())
                     : data.getReason();
             reason = reason.trim();
-            sender.sendMessage(ChatColor.GOLD + prefix + ChatColor.RED + search + ChatColor.GOLD +
+            sender.sendMessage(ChatColor.GOLD + prefix + ChatColor.RED + args[0] + ChatColor.GOLD +
                     " ist gebannt! Gebannt von: " + ChatColor.DARK_RED + data.getBanner() + ChatColor.GOLD + ", Grund: " + reason);
             return true;
         }

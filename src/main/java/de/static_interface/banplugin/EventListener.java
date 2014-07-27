@@ -1,7 +1,7 @@
 package de.static_interface.banplugin;
 
 import de.static_interface.sinklibrary.BukkitUtil;
-import org.bukkit.Bukkit;
+import de.static_interface.sinklibrary.SinkLibrary;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -23,17 +23,23 @@ public class EventListener implements Listener
     public void onAsyncPlayerPreLogin(AsyncPlayerPreLoginEvent event)
     {
         BanData data;
-
-        //Todo: log every damn ip with uuid as key and playername
         String ip = Util.getIp(event.getAddress());
+        try
+        {
+            database.logIp(event.getUniqueId(), event.getName(), ip);
+        }
+        catch ( SQLException e )
+        {
+            e.printStackTrace();
+        }
 
         try
         {
             data = database.getBanData(event.getUniqueId().toString(), false);
             if (isBanned(data, event))
             {
-                Bukkit.getLogger().log(Level.INFO, "[DEBUG] Current Timestamp: " + System.currentTimeMillis() + ", Unban Timestamp: " + data.getUnbanTimestamp());
-                Bukkit.getLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " is banned, disconnecting" );
+                SinkLibrary.getCustomLogger().debug("Current Timestamp: " + System.currentTimeMillis() + ", Unban Timestamp: " + data.getUnbanTimestamp());
+                SinkLibrary.getCustomLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " is banned, disconnecting");
                 BukkitUtil.broadcast(ChatColor.DARK_RED + "[BanPlugin] " + ChatColor.RED + "Warnung! Der gesperrte Spieler " + event.getName() + " versuchte " +
                         "sich gerade einzuloggen!", "banplugin.notification:", false);
                 return;
@@ -50,7 +56,7 @@ public class EventListener implements Listener
             data = database.getBanData(ip, true);
             if (isBanned(data, event))
             {
-                Bukkit.getLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " is IP banned, disconnecting" );
+                SinkLibrary.getCustomLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " is IP banned, disconnecting" );
                 BukkitUtil.broadcast(ChatColor.DARK_RED + "[BanPlugin] " + ChatColor.RED + "Warnung! Der IP gesperrte Spieler " + event.getName() + " mit der IP " + ip + " versuchte " +
                         "sich gerade einzuloggen!", "banplugin.notification:", false);
             }

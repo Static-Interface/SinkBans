@@ -62,7 +62,7 @@
 
     <build>
         <defaultGoal>clean install</defaultGoal>
-        <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+        <sourceDirectory>/src/main/java</sourceDirectory>
         <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
@@ -108,11 +108,7 @@
                             <includes>
                                 <include>target/**</include>
                                 <include>output/**</include>
-                            </includes>
-                            <directory>${project.basedir}</directory>
-                            <includes>
-                                <include>target/**</include>
-                                <include>output/**</include>
+                                <include>jars/**</include>
                             </includes>
                         </fileset>
                     </filesets>
