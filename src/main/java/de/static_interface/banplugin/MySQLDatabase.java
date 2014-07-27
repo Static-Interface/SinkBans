@@ -30,7 +30,7 @@ public class MySQLDatabase
         String query = String.format("CREATE TABLE IF NOT EXISTS %s (" +
                 "id INT NOT NULL AUTO_INCREMENT UNIQUE KEY, " +
                 "playername VARCHAR(16) NOT NULL, " +
-                "reason TEXT CHARACTER SET utf8 NOT NULL, " +
+                "reason TEXT CHARACTER SET utf8, " +
                 "bantimestamp BIGINT NOT NULL, " +
                 "unbantimestamp BIGINT NOT NULL, " +
                 "isbanned TINYINT(0) NOT NULL, " +
@@ -43,7 +43,6 @@ public class MySQLDatabase
         query = String.format("CREATE TABLE IF NOT EXISTS %s (" +
                 "id INT NOT NULL AUTO_INCREMENT UNIQUE KEY, " +
                 "ip VARCHAR(15) NOT NULL, " +
-                "reason TEXT CHARACTER SET utf8 NOT NULL, " +
                 "bantimestamp BIGINT NOT NULL, " +
                 "unbantimestamp BIGINT NOT NULL, " +
                 "isbanned TINYINT(0) NOT NULL, " +
@@ -190,17 +189,16 @@ public class MySQLDatabase
     public void banIp(String ip, String bannedby) throws SQLException
     {
         long banTimeStamp = System.currentTimeMillis();
-        String reason = "";
 
         try
         {
-            execute(String.format("INSERT INTO %s VALUES(NULL, '%s', '%s', '%s', '-1', '1', '%s', NULL)",
-                    IP_TABLE, ip, reason, banTimeStamp, bannedby));
+            execute(String.format("INSERT INTO %s VALUES(NULL, '%s', '%s', '-1', '1', '%s', NULL)",
+                    IP_TABLE, ip, banTimeStamp, bannedby));
         }
         catch(Exception e) //Already added?
         {
-            execute(String.format("UPDATE %s SET reason = '%s', bantimestamp = '%s',  unbantimestamp = '-1', isbanned = 1, bannedby = '%s', unbannedby = NULL WHERE ip = '%s'",
-                    IP_TABLE, reason, banTimeStamp, bannedby, ip));
+            execute(String.format("UPDATE %s SET bantimestamp = '%s',  unbantimestamp = '-1', isbanned = 1, bannedby = '%s', unbannedby = NULL WHERE ip = '%s'",
+                    IP_TABLE, banTimeStamp, bannedby, ip));
         }
     }
 
