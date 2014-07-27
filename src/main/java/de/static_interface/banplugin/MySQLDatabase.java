@@ -56,7 +56,8 @@ public class MySQLDatabase
                 "id INT NOT NULL AUTO_INCREMENT UNIQUE KEY, " +
                 "uuid VARCHAR(36) NOT NULL, " + //16 Bytes * 2 + 4
                 "playername VARCHAR(16) NOT NULL, " +
-                "ip VARCHAR(15) NOT NULL" +
+                "ip VARCHAR(15) NOT NULL, " +
+                "timestamp BIGINT NOT NULL " +
                 ");", LOG_TABLE);
         execute(query);
     }
@@ -219,8 +220,8 @@ public class MySQLDatabase
         execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = '%s', unbantimestamp = '%s' WHERE ip = '%s';", IP_TABLE, unbannedby, System.currentTimeMillis(), ip));
     }
 
-    public void logIp(UUID uniqueId, String name, String ip) throws SQLException
+    public void logIp(UUID uniqueId, String playername, String ip) throws SQLException
     {
-        execute(String.format("INSERT INTO %s VALUES(NULL, '%s', '%s', '%s')", LOG_TABLE, uniqueId.toString(), name, ip));
+        execute(String.format("INSERT INTO %s VALUES(NULL, '%s', '%s', '%s', '%s')", LOG_TABLE, uniqueId.toString(), playername, ip, System.currentTimeMillis()));
     }
 }
