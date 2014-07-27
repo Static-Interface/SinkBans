@@ -1,6 +1,7 @@
 package de.static_interface.banplugin;
 
 import de.static_interface.banplugin.commands.*;
+import de.static_interface.sinklibrary.SinkLibrary;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -33,11 +34,11 @@ public class BanPlugin extends JavaPlugin
 
     private void registerCommands()
     {
-        Bukkit.getPluginCommand("ban").setExecutor(new BanCommand(db));
-        Bukkit.getPluginCommand("banip").setExecutor(new BanIpCommand(db));
-        Bukkit.getPluginCommand("isbanned").setExecutor(new IsBannedCommand(db));
-        Bukkit.getPluginCommand("tempban").setExecutor(new TempBanCommand(db));
-        Bukkit.getPluginCommand("unban").setExecutor(new UnbanCommand(db));
-        Bukkit.getPluginCommand("unbanip").setExecutor(new UnbanIpCommand(db));
+        SinkLibrary.registerCommand("ban", new BanCommand(this, db));
+        SinkLibrary.registerCommand("banip", new BanIpCommand(this, db));
+        SinkLibrary.registerCommand("isbanned", new IsBannedCommand(this, db));
+        SinkLibrary.registerCommand("tempban", new TempBanCommand(this, db));
+        SinkLibrary.registerCommand("unban", new UnbanCommand(this, db));
+        SinkLibrary.registerCommand("unbanip", new UnbanIpCommand(this, db));
     }
 }
