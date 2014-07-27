@@ -37,7 +37,7 @@ public class UnbanCommand extends Command
 
         try
         {
-            db.unban(targetName, sender.getName());
+            db.unban(BukkitUtil.getUUIDByName(targetName), targetName, sender.getName());
         }
         catch ( SQLException e )
         {

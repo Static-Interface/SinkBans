@@ -7,16 +7,7 @@ public class Util
 {
     public static String getIp(InetAddress address)
     {
-        String ip;
-        try
-        {
-            ip = address.getHostName().split("/")[1].split(":")[0];
-        }
-        catch(ArrayIndexOutOfBoundsException e)
-        {
-            ip = address.getHostName().split(":")[0];
-        }
-        return ip;
+        return address.getHostAddress();
     }
 
     public static final String IP_PATTERN = "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}";

@@ -127,6 +127,17 @@ public class MySQLDatabase
         return null;
     }
 
+
+    public BanData getOldBanData(String playername) throws SQLException
+    {
+        String query = String.format("SELECT * FROM %s WHERE playername = '%s';", PLAYER_TABLE, playername);;
+        ResultSet result = executeQuery(query);
+        List<BanData> banResult = getFromResultSet(result, false);
+        if(banResult.size() > 0)
+            return banResult.get(0);
+        return null;
+    }
+
     public List<BanData> getFromResultSet(ResultSet resultSet, boolean isIp) throws SQLException
     {
         ArrayList<BanData> tmp = new ArrayList<>();
@@ -174,15 +185,17 @@ public class MySQLDatabase
                     IP_TABLE, ip, banTimeStamp, bannedby));
     }
 
-    public void unban(String playername, String unbannedby) throws SQLException
+    public void unban(UUID uuid, String playername, String unbannedby) throws SQLException
     {
         long unbanTimeStamp = System.currentTimeMillis();
-        execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = '%s', unbantimestamp = %s WHERE playername = '%s';" , PLAYER_TABLE, unbannedby, unbanTimeStamp, playername));
+        execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = '%s', unbantimestamp = %s WHERE isbanned = 1 AND uuid = '%s';" , PLAYER_TABLE, unbannedby, unbanTimeStamp, uuid.toString()));
+        execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = '%s', unbantimestamp = %s WHERE isbanned = 1 AND playername = '%s';" , PLAYER_TABLE, unbannedby, unbanTimeStamp, playername));
     }
 
-    public void unbanTempBan(String playername) throws SQLException
+    public void unbanTempBan(UUID uuid, String playername) throws SQLException
     {
-        execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = NULL WHERE playername = '%s';" , PLAYER_TABLE, playername));
+        execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = NULL WHERE isbanned = 1 AND uuid = '%s';" , PLAYER_TABLE, uuid.toString()));
+        execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = NULL WHERE isbanned = 1 AND playername = '%s';" , PLAYER_TABLE, playername));
     }
 
     public void unbanIp(String ip, String unbannedby) throws SQLException

@@ -63,6 +63,7 @@ public class TempBanCommand extends Command
 
         try
         {
+            db.unbanTempBan(target.getUniqueId(),target.getName()); // Unban all bans done before
             db.tempBan(target.getName(), banTimestamp, sender.getName(), target.getUniqueId());
         }
         catch ( SQLException e )

@@ -35,8 +35,9 @@ public class EventListener implements Listener
 
         try
         {
+            BanData oldData = database.getOldBanData(event.getName());
             data = database.getBanData(event.getUniqueId().toString(), false);
-            if (isBanned(data, event))
+            if (isBanned(data, event) ||isBanned(oldData, event))
             {
                 SinkLibrary.getCustomLogger().debug("Current Timestamp: " + System.currentTimeMillis() + ", Unban Timestamp: " + data.getUnbanTimestamp());
                 SinkLibrary.getCustomLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " is banned, disconnecting");
@@ -85,7 +86,7 @@ public class EventListener implements Listener
             {
                 try
                 {
-                    database.unbanTempBan(event.getName());
+                    database.unbanTempBan(event.getUniqueId(), event.getName());
                 }
                 catch ( SQLException e )
                 {
