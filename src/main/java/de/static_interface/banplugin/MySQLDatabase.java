@@ -65,7 +65,7 @@ public class MySQLDatabase
         query = String.format("CREATE TABLE IF NOT EXISTS %s (" +
                 "id INT NOT NULL AUTO_INCREMENT UNIQUE KEY, " +
                 "uuid VARCHAR(36) NOT NULL, " + //16 Bytes * 2 + 4
-                "playername VARCHAR(16) NOT NULL, " +
+                "playername VARCHAR(16) NOT NULL " +
                 ");", MULTIACCOUNT_TABLE);
 
         execute(query);
