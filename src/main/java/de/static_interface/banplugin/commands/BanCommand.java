@@ -5,6 +5,7 @@ import de.static_interface.sinklibrary.BukkitUtil;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.SinkUser;
 import de.static_interface.sinklibrary.commands.Command;
+import de.static_interface.sinklibrary.irc.IrcCommandSender;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
@@ -70,7 +71,12 @@ public class BanCommand extends Command
             return true;
         }
 
-        BukkitUtil.broadcastMessage(ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD  + " gesperrt:" + reason.trim(), true);
+        String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " gesperrt:" + reason.trim();
+        BukkitUtil.broadcast(msg, "banplugin.notification", false);
+        if(sender instanceof IrcCommandSender)
+        {
+            sender.sendMessage(msg);
+        }
 
         return true;
     }

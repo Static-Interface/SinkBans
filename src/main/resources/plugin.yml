@@ -11,6 +11,7 @@ commands:
     description: Allows to ban players
     usage: "/<command> [player} <reason>"
     permission: banplugin.ban
+    aliases: bann
 
   banip:
     description: Allows to ban ips
@@ -39,6 +40,12 @@ commands:
     permission: banplugin.ban
     aliases: pardonip
 
+  allowmultiaccount:
+    description: Allows MultiAccount Usage
+    usage: "/<command> playername"
+    permission: banplugin.allowmultiaccount
+    aliases: amc
+
 permissions:
   banplugin.*:
     description: Allows access to all ban commands
@@ -47,6 +54,8 @@ permissions:
       banplugin.ban: true
       banplugin.tempban: true
       banplugin.isbanned: true
+      banplugin.allowmultiaccount: true
+      banplugin.notification: true
 
   banplugin.ban:
     description: Allows to ban players
@@ -59,6 +68,10 @@ permissions:
   banplugin.isbanned:
     description: Allows to use the isBanned command
     default: true
+
+  banplugin.allowmultiaccount:
+    description: Allows to use the allowmultiaccount command
+    default: op
 
   banplugin.notification:
     description: Allows to receive messages if someone is trying to join when banned

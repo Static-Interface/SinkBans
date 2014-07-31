@@ -6,6 +6,7 @@ import de.static_interface.sinklibrary.BukkitUtil;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.SinkUser;
 import de.static_interface.sinklibrary.commands.Command;
+import de.static_interface.sinklibrary.irc.IrcCommandSender;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
@@ -41,10 +42,10 @@ public class TempBanCommand extends Command
         String prefix = BukkitUtil.getSenderName(sender);
 
         final String time = getFinalArg(args, 1);
-        final long banTimestamp;
+        final long unbantimestamp;
         try
         {
-            banTimestamp = DateUtil.parseDateDiff(time, true);
+            unbantimestamp = DateUtil.parseDateDiff(time, true);
         }
         catch ( Exception e )
         {
@@ -53,7 +54,7 @@ public class TempBanCommand extends Command
         }
 
 
-        String reason = ChatColor.RED + "Zeitlich gesperrt vom Server fuer " + DateUtil.formatDateDiff(banTimestamp);
+        String reason = ChatColor.RED + "Zeitlich gesperrt vom Server fuer " + DateUtil.formatDateDiff(unbantimestamp);
         String reasonPrefix = ChatColor.DARK_RED + "Gesperrt: ";
 
         if(target.isOnline())
@@ -63,15 +64,20 @@ public class TempBanCommand extends Command
 
         try
         {
-            db.unbanTempBan(target.getUniqueId(),target.getName()); // Unban all bans done before
-            db.tempBan(target.getName(), banTimestamp, sender.getName(), target.getUniqueId());
+            db.unbanTempBan(target.getUniqueId(),target.getName(), unbantimestamp); // Unban all bans done before
+            db.tempBan(target.getName(), unbantimestamp, sender.getName(), target.getUniqueId());
         }
         catch ( SQLException e )
         {
             e.printStackTrace();
         }
 
-        BukkitUtil.broadcastMessage(ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " gesperrt: " + reason.trim(), true);
+        String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " gesperrt: " + reason.trim();
+        BukkitUtil.broadcast(msg, "banplugin.notification", false);
+        if(sender instanceof IrcCommandSender )
+        {
+            sender.sendMessage(msg);
+        }
 
         return true;
     }

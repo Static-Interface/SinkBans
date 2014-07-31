@@ -1,9 +1,11 @@
 package de.static_interface.banplugin.commands;
 
+import de.static_interface.banplugin.Account;
 import de.static_interface.banplugin.MySQLDatabase;
 import de.static_interface.banplugin.Util;
 import de.static_interface.sinklibrary.BukkitUtil;
 import de.static_interface.sinklibrary.commands.Command;
+import de.static_interface.sinklibrary.irc.IrcCommandSender;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -11,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.sql.SQLException;
+import java.util.List;
 
 public class BanIpCommand extends Command
 {
@@ -64,7 +67,35 @@ public class BanIpCommand extends Command
             }
         }
 
-        BukkitUtil.broadcastMessage(ChatColor.GOLD + prefix + ChatColor.GOLD + " hat die folgende IP gesperrt: "+ ChatColor.RED + ip, true);
+        String bannedPlayers = null;
+
+        try
+        {
+            List<Account> accounts = db.getAccounts(ip);
+            for(Account acc : accounts)
+            {
+                db.ban(acc.getPlayername(), "Automatischer Bann durch IP Bann", sender.getName(), acc.getUniqueId());
+                if(bannedPlayers == null)
+                {
+                    bannedPlayers = acc.getPlayername();
+                    continue;
+                }
+                bannedPlayers += ", " + acc.getPlayername();
+            }
+        }
+        catch ( SQLException e )
+        {
+            e.printStackTrace();
+        }
+
+        String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat die folgende IP gesperrt: "+ ChatColor.RED + ip;
+        BukkitUtil.broadcast(msg, "banplugin.notification", false);
+        if(sender instanceof IrcCommandSender )
+        {
+            sender.sendMessage(msg);
+        }
+        sender.sendMessage(ChatColor.GOLD + "Folgende Spieler wurden automatisch gesperrt, da sie mit der selben IP spielten: ");
+        sender.sendMessage(ChatColor.RED + bannedPlayers);
         return true;
     }
 }

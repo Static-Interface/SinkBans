@@ -11,6 +11,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class IsBannedCommand extends Command
 {
@@ -30,7 +32,7 @@ public class IsBannedCommand extends Command
     @Override
     public boolean onExecute(CommandSender sender, String label, String[] args)
     {
-        BanData data = null;
+        List<BanData> datas = new ArrayList<>();
 
         if (args.length < 1)
         {
@@ -44,26 +46,36 @@ public class IsBannedCommand extends Command
         String prefix = ip ? "Die IP " : "Spieler ";
         if(!ip)
         {
-            search = BukkitUtil.getUUIDByName(search).toString();
+            try
+            {
+                datas = db.getOldBanData(search);
+                search = BukkitUtil.getUUIDByName(search).toString();
+                datas.addAll(db.getBanData(search, false));
+            }
+            catch ( SQLException e )
+            {
+                e.printStackTrace();
+            }
         }
         try
         {
-            data = db.getBanData(search, ip);
+            datas = db.getBanData(search, ip);
         }
         catch ( SQLException ignored ) { }
 
-        if (data != null && data.isBanned())
+        for(BanData data : datas)
         {
-            String reason = data.isTempBanned() ? ChatColor.RED + "Zeitlich gesperrt vom Server fuer " + DateUtil.formatDateDiff(data.getUnbanTimestamp())
-                    : data.getReason();
-            reason = reason.trim();
-            sender.sendMessage(ChatColor.GOLD + prefix + ChatColor.RED + args[0] + ChatColor.GOLD +
-                    " ist gebannt! Gebannt von: " + ChatColor.DARK_RED + data.getBanner() + ChatColor.GOLD + ", Grund: " + reason);
-            return true;
+            if ( data.isBanned() )
+            {
+                String reason = data.isTempBanned() ? ChatColor.RED + "Zeitlich gesperrt vom Server fuer " + DateUtil.formatDateDiff(data.getUnbanTimeStamp()) : data.getReason();
+                reason = reason.trim();
+                sender.sendMessage(ChatColor.GOLD + prefix + ChatColor.RED + args[0] + ChatColor.GOLD +
+                        " ist gebannt! Gebannt von: " + ChatColor.DARK_RED + data.getBanner() + ChatColor.GOLD + ", Grund: " + reason);
+                return true;
+            }
         }
 
-        sender.sendMessage(ChatColor.GOLD + prefix + ChatColor.RED + search + ChatColor.GOLD + " ist nicht gebannt!");
-
+        sender.sendMessage(ChatColor.GOLD + prefix + ChatColor.RED + args[0] + ChatColor.GOLD + " ist nicht gebannt!");
         return true;
     }
 }

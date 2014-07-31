@@ -3,6 +3,7 @@ package de.static_interface.banplugin.commands;
 import de.static_interface.banplugin.MySQLDatabase;
 import de.static_interface.sinklibrary.BukkitUtil;
 import de.static_interface.sinklibrary.commands.Command;
+import de.static_interface.sinklibrary.irc.IrcCommandSender;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
@@ -45,9 +46,12 @@ public class UnbanCommand extends Command
             sender.sendMessage(ChatColor.DARK_RED + "Ein Fehler ist aufgetreten!");
             return true;
         }
-
-        BukkitUtil.broadcastMessage(ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " entsperrt.", true);
-
+        String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " entsperrt.";
+        BukkitUtil.broadcast(msg, "banplugin.notification", false);
+        if(sender instanceof IrcCommandSender )
+        {
+            sender.sendMessage(msg);
+        }
         return true;
     }
 }

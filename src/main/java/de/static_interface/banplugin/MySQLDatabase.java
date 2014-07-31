@@ -11,6 +11,7 @@ import java.util.UUID;
 public class MySQLDatabase
 {
     private static final String LOG_TABLE = "iplog";
+    public static final String MULTIACCOUNT_TABLE = "multiacc";
     private Connection connection;
     public static final String PLAYER_TABLE = "players";
     public static final String IP_TABLE = "ips";
@@ -58,10 +59,19 @@ public class MySQLDatabase
                 "ip VARCHAR(15) NOT NULL, " +
                 "timestamp BIGINT NOT NULL " +
                 ");", LOG_TABLE);
+
+        execute(query);
+
+        query = String.format("CREATE TABLE IF NOT EXISTS %s (" +
+                "id INT NOT NULL AUTO_INCREMENT UNIQUE KEY, " +
+                "uuid VARCHAR(36) NOT NULL, " + //16 Bytes * 2 + 4
+                "playername VARCHAR(16) NOT NULL, " +
+                ");", MULTIACCOUNT_TABLE);
+
         execute(query);
     }
 
-    private void execute(String query) throws SQLException
+    public void execute(String query) throws SQLException
     {
         PreparedStatement statment = connection.prepareStatement(query);
         statment.execute();
@@ -111,31 +121,24 @@ public class MySQLDatabase
             UUID uuid = BukkitUtil.getUUIDByName(entry.getName());
             execute(String.format("UPDATE %s SET uuid = '%s' WHERE playername = '%s'", PLAYER_TABLE, uuid.toString(), entry.getName()));
         }
-
     }
 
-    public BanData getBanData(String searchString, boolean isIp) throws SQLException
+    public List<BanData> getBanData(String searchString, boolean isIp) throws SQLException
     {
         String query = isIp
                 ? String.format("SELECT * FROM %s WHERE ip = '%s';", IP_TABLE, searchString)
                 : String.format("SELECT * FROM %s WHERE uuid = '%s';", PLAYER_TABLE, searchString);
 
         ResultSet result = executeQuery(query);
-        List<BanData> banResult = getFromResultSet(result, isIp);
-        if(banResult.size() > 0)
-            return banResult.get(0);
-        return null;
+        return getFromResultSet(result, isIp);
     }
 
 
-    public BanData getOldBanData(String playername) throws SQLException
+    public List<BanData> getOldBanData(String playername) throws SQLException
     {
         String query = String.format("SELECT * FROM %s WHERE playername = '%s';", PLAYER_TABLE, playername);;
         ResultSet result = executeQuery(query);
-        List<BanData> banResult = getFromResultSet(result, false);
-        if(banResult.size() > 0)
-            return banResult.get(0);
-        return null;
+        return getFromResultSet(result, false);
     }
 
     public List<BanData> getFromResultSet(ResultSet resultSet, boolean isIp) throws SQLException
@@ -152,7 +155,7 @@ public class MySQLDatabase
                 data.setUnbanTimeStamp(resultSet.getLong("unbantimestamp"));
                 if (isIp) data.setIp(resultSet.getString("ip"));
                 data.setBanned(resultSet.getBoolean("isbanned"));
-                data.setUniqueId(UUID.fromString(resultSet.getString("uuid")));
+                data.setUniqueId(resultSet.getString("uuid"));
                 tmp.add(data);
             }
             catch(SQLException e)
@@ -171,11 +174,11 @@ public class MySQLDatabase
         execute(String.format("INSERT INTO %s VALUES(NULL, '%s','%s','%s', '-1', '1', '%s', NULL, '%s')", PLAYER_TABLE, playername, reason, banTimeStamp, bannedby, uuid.toString()));
     }
 
-    public void tempBan(String playername, long unbanTimestamp, String bannedby, UUID uuid) throws SQLException
+    public void tempBan(String playername, long unbanTimeStamp, String bannedby, UUID uuid) throws SQLException
     {
         long banTimeStamp = System.currentTimeMillis();
         execute(String.format("INSERT INTO %s VALUES(NULL, '%s', NULL, '%s', '%s', '1', '%s', NULL, '%s')",
-                    PLAYER_TABLE, playername, banTimeStamp, unbanTimestamp, bannedby, uuid.toString()));
+                    PLAYER_TABLE, playername, banTimeStamp, unbanTimeStamp, bannedby, uuid.toString()));
     }
 
     public void banIp(String ip, String bannedby) throws SQLException
@@ -192,10 +195,10 @@ public class MySQLDatabase
         execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = '%s', unbantimestamp = %s WHERE isbanned = 1 AND playername = '%s';" , PLAYER_TABLE, unbannedby, unbanTimeStamp, playername));
     }
 
-    public void unbanTempBan(UUID uuid, String playername) throws SQLException
+    public void unbanTempBan(UUID uuid, String playername, long unbanTimeStamp) throws SQLException
     {
-        execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = NULL WHERE isbanned = 1 AND uuid = '%s';" , PLAYER_TABLE, uuid.toString()));
-        execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = NULL WHERE isbanned = 1 AND playername = '%s';" , PLAYER_TABLE, playername));
+        execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = NULL, unbantimestamp = '%s' WHERE isbanned = 1 AND uuid = '%s';" , PLAYER_TABLE, unbanTimeStamp, uuid.toString()));
+        execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = NULL, unbantimestamp = '%s' WHERE isbanned = 1 AND playername = '%s';" , PLAYER_TABLE, unbanTimeStamp, playername));
     }
 
     public void unbanIp(String ip, String unbannedby) throws SQLException
@@ -206,5 +209,44 @@ public class MySQLDatabase
     public void logIp(UUID uniqueId, String playername, String ip) throws SQLException
     {
         execute(String.format("INSERT INTO %s VALUES(NULL, '%s', '%s', '%s', '%s')", LOG_TABLE, uniqueId.toString(), playername, ip, System.currentTimeMillis()));
+    }
+
+    public void fixBan(BanData data, UUID uniqueId) throws SQLException
+    {
+        execute(String.format("UPDATE %s SET uuid = '%s' WHERE playername = '%s'", PLAYER_TABLE, uniqueId.toString(), data.getName()));
+    }
+
+    public List<Account> getAccounts(String ip) throws SQLException
+    {
+        ResultSet resultSet = executeQuery(String.format(
+                "SELECT uuid, " + PLAYER_TABLE + ".playername, " + PLAYER_TABLE +".ip FROM " + PLAYER_TABLE + " INNER JOIN(SELECT ip, playername " +
+                "FROM " + PLAYER_TABLE + " WHERE " + PLAYER_TABLE + ".ip = '%s' GROUP BY ip HAVING count(id) > 1) dup " +
+                "ON " + PLAYER_TABLE + ".ip = dup.ip AND " + PLAYER_TABLE + ".playername != dup.playername GROUP BY playername", ip));
+
+        ArrayList<Account> tmp = new ArrayList<>();
+        while (resultSet.next())
+        {
+            try
+            {
+                Account acc = new Account(UUID.fromString(resultSet.getString("uuid")), resultSet.getString("playername"));
+                tmp.add(acc);
+            }
+            catch(SQLException e)
+            {
+                e.printStackTrace();
+            }
+        }
+        return tmp;
+    }
+
+    public void addMultiAccount(Account account) throws SQLException
+    {
+        execute(String.format("INSERT INTO %s VALUES(NULL, '%s', '%s')", MULTIACCOUNT_TABLE, account.getUniqueId().toString(), account.getPlayername()));
+    }
+
+    public boolean isAllowedMultiAccount(Account account) throws SQLException
+    {
+        ResultSet set = executeQuery(String.format("SELECT * FROM %s WHERE uuid = '%s'", MULTIACCOUNT_TABLE, account.getUniqueId().toString()));
+        return set.next();
     }
 }

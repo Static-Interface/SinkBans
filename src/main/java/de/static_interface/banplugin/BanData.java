@@ -2,21 +2,19 @@ package de.static_interface.banplugin;
 
 import org.bukkit.ChatColor;
 
-import java.util.UUID;
-
 public class BanData
 {
 
     private boolean isBanned;
 
-    private long banTimestamp;
-    private long unbanTimestamp;
+    private long banTimeStamp;
+    private long unbanTimeStamp;
 
     private String reason;
     private String playername;
     private String ip;
     private String banner;
-    private UUID uuid;
+    private String uuid;
 
 
     public BanData(String playername)
@@ -29,14 +27,14 @@ public class BanData
         return isBanned;
     }
 
-    public boolean isPermaBanned()
+    public boolean isPermBan()
     {
-        return unbanTimestamp == -1;
+        return unbanTimeStamp == -1;
     }
 
     public boolean isTempBanned()
     {
-        return unbanTimestamp > 0;
+        return unbanTimeStamp > 0;
     }
 
     public void setReason(String reason)
@@ -49,19 +47,19 @@ public class BanData
         return ChatColor.RED + reason;
     }
 
-    public long getUnbanTimestamp()
+    public long getUnbanTimeStamp()
     {
-        return unbanTimestamp;
+        return unbanTimeStamp;
     }
 
     public void setBanTimeStamp(long banTimeStamp)
     {
-        this.banTimestamp= banTimeStamp;
+        this.banTimeStamp = banTimeStamp;
     }
 
     public void setUnbanTimeStamp(long unbanTimestamp)
     {
-        this.unbanTimestamp = unbanTimestamp;
+        this.unbanTimeStamp = unbanTimestamp;
     }
 
     public void setIp(String ip)
@@ -94,13 +92,18 @@ public class BanData
         return playername;
     }
 
-    public void setUniqueId(UUID uuid)
+    public void setUniqueId(String uuid)
     {
         this.uuid = uuid;
     }
 
-    public UUID getUniqueId()
+    public String getUniqueId()
     {
         return uuid;
+    }
+
+    public long getBanTimeStamp()
+    {
+        return banTimeStamp;
     }
 }
