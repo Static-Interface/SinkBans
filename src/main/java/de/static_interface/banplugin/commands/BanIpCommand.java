@@ -94,6 +94,7 @@ public class BanIpCommand extends Command
         {
             sender.sendMessage(msg);
         }
+        if(bannedPlayers == null) return true;
         sender.sendMessage(ChatColor.GOLD + "Folgende Spieler wurden automatisch gesperrt, da sie mit der selben IP spielten: ");
         sender.sendMessage(ChatColor.RED + bannedPlayers);
         return true;

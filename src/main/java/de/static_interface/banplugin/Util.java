@@ -1,8 +1,12 @@
 package de.static_interface.banplugin;
 
+import de.static_interface.sinklibrary.BukkitUtil;
+
 import java.net.InetAddress;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 public class Util
@@ -33,6 +37,24 @@ public class Util
         catch ( SQLException e )
         {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static UUID getUniqueId(String playername, MySQLDatabase database)
+    {
+        try
+        {
+            ResultSet result = database.executeQuery(String.format("SELECT * FROM %s WHERE playername='%s'", MySQLDatabase.LOG_TABLE, playername));
+            if(result.next())
+            {
+                return UUID.fromString(result.getString("uuid"));
+            }
+            throw new NullPointerException();
+        }
+        catch ( Exception e )
+        {
+            e.printStackTrace();
+            return BukkitUtil.getUUIDByName(playername);
         }
     }
 }

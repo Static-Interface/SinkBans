@@ -42,9 +42,14 @@ commands:
 
   allowmultiaccount:
     description: Allows MultiAccount Usage
-    usage: "/<command> playername"
+    usage: "/<command> <playername>"
     permission: banplugin.allowmultiaccount
     aliases: amc
+
+  bdebug:
+    description: Debug
+    usage: "/<command> <ip>"
+    permission: banplugin.ban
 
 permissions:
   banplugin.*:

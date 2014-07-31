@@ -84,6 +84,8 @@ public class UnbanIpCommand extends Command
         {
             sender.sendMessage(msg);
         }
+
+        if(unbannedPlayers == null) return true;
         sender.sendMessage(ChatColor.GOLD + "Folgende Spieler wurden automatisch entsperrt, da sie mit der selben IP spielten: ");
         sender.sendMessage(ChatColor.DARK_GREEN + unbannedPlayers);
         return true;

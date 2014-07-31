@@ -2,7 +2,7 @@ package de.static_interface.banplugin.commands;
 
 import de.static_interface.banplugin.Account;
 import de.static_interface.banplugin.MySQLDatabase;
-import de.static_interface.sinklibrary.BukkitUtil;
+import de.static_interface.banplugin.Util;
 import de.static_interface.sinklibrary.commands.Command;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -29,17 +29,23 @@ public class AllowMultiAccountCommand extends Command
     @Override
     protected boolean onExecute(CommandSender sender, String label, String[] args)
     {
-        if(args.length < 2)
+        if(args.length < 1)
         {
             return false;
         }
 
         String name = args[0];
-        UUID uuid = BukkitUtil.getUUIDByName(name);
+        UUID uuid = Util.getUniqueId(name, db);
 
         try
         {
-            db.addMultiAccount(new Account(uuid, name));
+            Account acc = new Account(uuid, name);
+            if(db.isAllowedMultiAccount(acc))
+            {
+                sender.sendMessage(ChatColor.DARK_RED + "Fehler: " + ChatColor.RED + " Dieser Account ist bereits auf der Whitelist!");
+                return true;
+            }
+            db.addMultiAccount(acc);
             sender.sendMessage(ChatColor.DARK_GREEN + name + " wurde erfolgreich zur MultiAccount Whitelist hinzugefügt!");
         }
         catch ( SQLException e )

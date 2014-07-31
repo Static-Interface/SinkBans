@@ -1,6 +1,7 @@
 package de.static_interface.banplugin;
 
 import de.static_interface.sinklibrary.BukkitUtil;
+import de.static_interface.sinklibrary.SinkLibrary;
 import org.bukkit.ChatColor;
 
 import java.sql.*;
@@ -10,7 +11,7 @@ import java.util.UUID;
 
 public class MySQLDatabase
 {
-    private static final String LOG_TABLE = "iplog";
+    public static final String LOG_TABLE = "iplog";
     public static final String MULTIACCOUNT_TABLE = "multiacc";
     private Connection connection;
     public static final String PLAYER_TABLE = "players";
@@ -77,7 +78,7 @@ public class MySQLDatabase
         statment.execute();
     }
 
-    private ResultSet executeQuery(String query) throws SQLException
+    public ResultSet executeQuery(String query) throws SQLException
     {
         PreparedStatement statment = connection.prepareStatement(query);
         return statment.executeQuery();
@@ -150,12 +151,12 @@ public class MySQLDatabase
             {
                 BanData data = new BanData(isIp ? resultSet.getString("ip") : resultSet.getString("playername"));
                 data.setBanner(resultSet.getString("bannedby"));
-                data.setReason(resultSet.getString("reason"));
+                if(!isIp) data.setReason(resultSet.getString("reason"));
                 data.setBanTimeStamp(resultSet.getLong("bantimestamp"));
                 data.setUnbanTimeStamp(resultSet.getLong("unbantimestamp"));
                 if (isIp) data.setIp(resultSet.getString("ip"));
                 data.setBanned(resultSet.getBoolean("isbanned"));
-                data.setUniqueId(resultSet.getString("uuid"));
+                if(!isIp) data.setUniqueId(resultSet.getString("uuid"));
                 tmp.add(data);
             }
             catch(SQLException e)
@@ -218,10 +219,15 @@ public class MySQLDatabase
 
     public List<Account> getAccounts(String ip) throws SQLException
     {
-        ResultSet resultSet = executeQuery(String.format(
-                "SELECT uuid, " + LOG_TABLE + ".playername, " + LOG_TABLE +".ip FROM " + LOG_TABLE + " INNER JOIN(SELECT ip, playername " +
-                "FROM " + LOG_TABLE + " WHERE " + LOG_TABLE + ".ip = '%s' GROUP BY ip HAVING count(id) > 1) dup " +
-                "ON " + LOG_TABLE + ".ip = dup.ip AND " + LOG_TABLE + ".playername != dup.playername GROUP BY playername", ip));
+        //String query = String.format(
+        //    "SELECT uuid, " + LOG_TABLE + ".playername, " + LOG_TABLE +".ip FROM " + LOG_TABLE + " INNER JOIN(SELECT ip, playername " +
+        //            "FROM " + LOG_TABLE + " WHERE " + LOG_TABLE + ".ip = '%s' GROUP BY ip HAVING count(id) > 1) dup " +
+        //            "ON " + LOG_TABLE + ".ip = dup.ip AND " + LOG_TABLE + ".playername != dup.playername GROUP BY playername", ip);
+
+        String query = String.format("SELECT * from %s WHERE ip = '%s'", LOG_TABLE, ip);
+        ResultSet resultSet = executeQuery(query);
+
+        SinkLibrary.getCustomLogger().info("Query: " + query);
 
         ArrayList<Account> tmp = new ArrayList<>();
         while (resultSet.next())
@@ -229,6 +235,7 @@ public class MySQLDatabase
             try
             {
                 Account acc = new Account(UUID.fromString(resultSet.getString("uuid")), resultSet.getString("playername"));
+                if(containsAccount(tmp, acc)) continue;
                 tmp.add(acc);
             }
             catch(SQLException e)
@@ -239,6 +246,15 @@ public class MySQLDatabase
         return tmp;
     }
 
+    private boolean containsAccount(ArrayList<Account> tmp, Account acc)
+    {
+        for(Account account : tmp)
+        {
+            if(account.getUniqueId().toString().equals(acc.getUniqueId().toString())) return true;
+        }
+        return false;
+    }
+
     public void addMultiAccount(Account account) throws SQLException
     {
         execute(String.format("INSERT INTO %s VALUES(NULL, '%s', '%s')", MULTIACCOUNT_TABLE, account.getUniqueId().toString(), account.getPlayername()));
@@ -246,7 +262,15 @@ public class MySQLDatabase
 
     public boolean isAllowedMultiAccount(Account account) throws SQLException
     {
+        boolean allowed;
         ResultSet set = executeQuery(String.format("SELECT * FROM %s WHERE uuid = '%s'", MULTIACCOUNT_TABLE, account.getUniqueId().toString()));
-        return set.next();
+        allowed = set.next();
+
+        //if(!allowed)
+        //{
+        //    set = executeQuery(String.format("SELECT * FROM %s WHERE uuid = '%s'", MULTIACCOUNT_TABLE, account.getUniqueId().toString()));
+        //}
+        //allowed = set.next();
+        return allowed;
     }
 }

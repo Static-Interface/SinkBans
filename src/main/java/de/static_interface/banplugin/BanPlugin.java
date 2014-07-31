@@ -41,5 +41,6 @@ public class BanPlugin extends JavaPlugin
         SinkLibrary.registerCommand("unban", new UnbanCommand(this, db));
         SinkLibrary.registerCommand("unbanip", new UnbanIpCommand(this, db));
         SinkLibrary.registerCommand("allowmultiaccount", new AllowMultiAccountCommand(this, db));
+        SinkLibrary.registerCommand("bdebug", new BDebugCommand(this, db));
     }
 }
