@@ -219,9 +219,9 @@ public class MySQLDatabase
     public List<Account> getAccounts(String ip) throws SQLException
     {
         ResultSet resultSet = executeQuery(String.format(
-                "SELECT uuid, " + PLAYER_TABLE + ".playername, " + PLAYER_TABLE +".ip FROM " + PLAYER_TABLE + " INNER JOIN(SELECT ip, playername " +
-                "FROM " + PLAYER_TABLE + " WHERE " + PLAYER_TABLE + ".ip = '%s' GROUP BY ip HAVING count(id) > 1) dup " +
-                "ON " + PLAYER_TABLE + ".ip = dup.ip AND " + PLAYER_TABLE + ".playername != dup.playername GROUP BY playername", ip));
+                "SELECT uuid, " + LOG_TABLE + ".playername, " + LOG_TABLE +".ip FROM " + LOG_TABLE + " INNER JOIN(SELECT ip, playername " +
+                "FROM " + LOG_TABLE + " WHERE " + LOG_TABLE + ".ip = '%s' GROUP BY ip HAVING count(id) > 1) dup " +
+                "ON " + LOG_TABLE + ".ip = dup.ip AND " + LOG_TABLE + ".playername != dup.playername GROUP BY playername", ip));
 
         ArrayList<Account> tmp = new ArrayList<>();
         while (resultSet.next())
