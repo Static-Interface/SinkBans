@@ -4,7 +4,6 @@ import de.static_interface.banplugin.BanData;
 import de.static_interface.banplugin.DateUtil;
 import de.static_interface.banplugin.MySQLDatabase;
 import de.static_interface.banplugin.Util;
-import de.static_interface.sinklibrary.BukkitUtil;
 import de.static_interface.sinklibrary.commands.Command;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -12,6 +11,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class IsBannedCommand extends Command
@@ -21,12 +21,6 @@ public class IsBannedCommand extends Command
     {
         super(plugin);
         this.db = db;
-    }
-
-    @Override
-    public boolean isIrcOpOnly()
-    {
-        return true;
     }
 
     @Override
@@ -48,9 +42,9 @@ public class IsBannedCommand extends Command
         {
             try
             {
-                datas = db.getOldBanData(search);
-                search = BukkitUtil.getUUIDByName(search).toString();
-                datas.addAll(db.getBanData(search, false));
+                search = Util.getUniqueId(search, db).toString();
+                datas = db.getBanData(search, false);
+                datas.addAll(db.getOldBanData(args[0]));
             }
             catch ( SQLException e )
             {
@@ -62,6 +56,8 @@ public class IsBannedCommand extends Command
             datas = db.getBanData(search, ip);
         }
         catch ( SQLException ignored ) { }
+
+        Collections.sort(datas);
 
         for(BanData data : datas)
         {

@@ -42,19 +42,23 @@ public class Util
 
     public static UUID getUniqueId(String playername, MySQLDatabase database)
     {
+        UUID uuid = null;
         try
         {
             ResultSet result = database.executeQuery(String.format("SELECT * FROM %s WHERE playername='%s'", MySQLDatabase.LOG_TABLE, playername));
             if(result.next())
             {
-                return UUID.fromString(result.getString("uuid"));
+                uuid = UUID.fromString(result.getString("uuid"));
             }
-            throw new NullPointerException();
         }
         catch ( Exception e )
         {
             e.printStackTrace();
-            return BukkitUtil.getUUIDByName(playername);
         }
+        if(uuid == null)
+        {
+            uuid = BukkitUtil.getUUIDByName(playername);;
+        }
+        return uuid;
     }
 }

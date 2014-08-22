@@ -2,7 +2,7 @@ package de.static_interface.banplugin;
 
 import org.bukkit.ChatColor;
 
-public class BanData
+public class BanData implements Comparable<BanData>
 {
 
     private boolean isBanned;
@@ -105,5 +105,15 @@ public class BanData
     public long getBanTimeStamp()
     {
         return banTimeStamp;
+    }
+
+    @Override
+    public int compareTo(BanData banData)
+    {
+        if(banData.getBanTimeStamp() > getBanTimeStamp())
+            return -1;
+        else if(banData.getBanTimeStamp() < getBanTimeStamp())
+            return 1;
+        return 0;
     }
 }

@@ -114,7 +114,7 @@ public class EventListener implements Listener
         for(Account account : accounts)
         {
             if(Util.isBanned(account, database)) continue;
-            database.ban(account.getPlayername(), "Automatische Multiaccount Sperrung", "System", account.getUniqueId());
+            database.ban(account.getPlayername(), null, null, account.getUniqueId(), BanType.AUTO_MULTI_ACC);
         }
 
         event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_BANNED, "Unangemeldeter MultiAccount. Bitte melde dich bei einem Moderator oder Administrator.");
@@ -180,7 +180,7 @@ public class EventListener implements Listener
             {
                 try
                 {
-                    database.ban(event.getName(), "Automatischer Bann durch IP Bann", data.getBanner(), event.getUniqueId());
+                    database.ban(event.getName(), null, data.getBanner(), event.getUniqueId(), BanType.AUTO_IP);
                 }
                 catch ( SQLException e )
                 {

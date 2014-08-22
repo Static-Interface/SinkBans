@@ -1,6 +1,7 @@
 package de.static_interface.banplugin.commands;
 
 import de.static_interface.banplugin.Account;
+import de.static_interface.banplugin.BanType;
 import de.static_interface.banplugin.MySQLDatabase;
 import de.static_interface.banplugin.Util;
 import de.static_interface.sinklibrary.BukkitUtil;
@@ -74,7 +75,7 @@ public class BanIpCommand extends Command
             List<Account> accounts = db.getAccounts(ip);
             for(Account acc : accounts)
             {
-                db.ban(acc.getPlayername(), "Automatischer Bann durch IP Bann", sender.getName(), acc.getUniqueId());
+                db.ban(acc.getPlayername(), null, sender.getName(), acc.getUniqueId(), BanType.AUTO_IP);
                 if(bannedPlayers == null)
                 {
                     bannedPlayers = acc.getPlayername();

@@ -1,5 +1,6 @@
 package de.static_interface.banplugin.commands;
 
+import de.static_interface.banplugin.BanType;
 import de.static_interface.banplugin.DateUtil;
 import de.static_interface.banplugin.MySQLDatabase;
 import de.static_interface.sinklibrary.BukkitUtil;
@@ -65,7 +66,7 @@ public class TempBanCommand extends Command
         try
         {
             db.unbanTempBan(target.getUniqueId(),target.getName(), unbantimestamp); // Unban all bans done before
-            db.tempBan(target.getName(), unbantimestamp, sender.getName(), target.getUniqueId());
+            db.tempBan(target.getName(), unbantimestamp, sender.getName(), target.getUniqueId(), BanType.MANUAL_BAN);
         }
         catch ( SQLException e )
         {

@@ -1,11 +1,11 @@
 package de.static_interface.banplugin;
 
 import de.static_interface.sinklibrary.BukkitUtil;
-import de.static_interface.sinklibrary.SinkLibrary;
 import org.bukkit.ChatColor;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,9 +36,10 @@ public class MySQLDatabase
                 "bantimestamp BIGINT NOT NULL, " +
                 "unbantimestamp BIGINT NOT NULL, " +
                 "isbanned TINYINT(0) NOT NULL, " +
-                "bannedby VARCHAR(16) NOT NULL, "+
+                "bannedby VARCHAR(16), "+
                 "unbannedby VARCHAR(16), " +
-                "uuid VARCHAR(36) NOT NULL" + //16 Bytes * 2 + 4
+                "uuid VARCHAR(36) NOT NULL," + //16 Bytes * 2 + 4
+                "bantype INTEGER NOT NULL" +
                 ");", PLAYER_TABLE);
         execute(query);
 
@@ -127,8 +128,8 @@ public class MySQLDatabase
     public List<BanData> getBanData(String searchString, boolean isIp) throws SQLException
     {
         String query = isIp
-                ? String.format("SELECT * FROM %s WHERE ip = '%s';", IP_TABLE, searchString)
-                : String.format("SELECT * FROM %s WHERE uuid = '%s';", PLAYER_TABLE, searchString);
+                ? String.format("SELECT * FROM %s WHERE ip = '%s' ORDER BY bantimestamp DESC", IP_TABLE, searchString)
+                : String.format("SELECT * FROM %s WHERE uuid = '%s' ORDER BY bantimestamp DESC", PLAYER_TABLE, searchString);
 
         ResultSet result = executeQuery(query);
         return getFromResultSet(result, isIp);
@@ -164,22 +165,36 @@ public class MySQLDatabase
                 e.printStackTrace();
             }
         }
+        Collections.sort(tmp);
         return tmp;
     }
 
-    public void ban(String playername, String reason, String bannedby, UUID uuid) throws SQLException
+    private String getMySqlValue(Object value)
     {
+        String text = String.valueOf(value);
+        if (value == null) return "NULL";
+        else return '\'' + text + '\'';
+    }
+
+
+    public void ban(String playername, String reason, String bannedby, UUID uuid, int type) throws SQLException
+    {
+        if(uuid == null) throw new IllegalStateException("uuid may not be null!");
         long banTimeStamp = System.currentTimeMillis();
         reason = reason.trim();
         reason = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', reason));
-        execute(String.format("INSERT INTO %s VALUES(NULL, '%s','%s','%s', '-1', '1', '%s', NULL, '%s')", PLAYER_TABLE, playername, reason, banTimeStamp, bannedby, uuid.toString()));
+        execute(String.format("INSERT INTO %s VALUES(NULL, %s, %s,%s, '-1', '1', %s, NULL, '%s', %s)",
+                PLAYER_TABLE, getMySqlValue(playername), getMySqlValue(reason), getMySqlValue(banTimeStamp),
+                getMySqlValue(bannedby), uuid.toString(), getMySqlValue(type)));
     }
 
-    public void tempBan(String playername, long unbanTimeStamp, String bannedby, UUID uuid) throws SQLException
+    public void tempBan(String playername, long unbanTimeStamp, String bannedby, UUID uuid, int type) throws SQLException
     {
+        if(uuid == null) throw new IllegalStateException("uuid may not be null!");
         long banTimeStamp = System.currentTimeMillis();
-        execute(String.format("INSERT INTO %s VALUES(NULL, '%s', NULL, '%s', '%s', '1', '%s', NULL, '%s')",
-                    PLAYER_TABLE, playername, banTimeStamp, unbanTimeStamp, bannedby, uuid.toString()));
+        execute(String.format("INSERT INTO %s VALUES(NULL, %s, NULL, %s, %s, '1', %s, NULL, '%s', %s)",
+                    PLAYER_TABLE, getMySqlValue(playername), getMySqlValue(String.valueOf(banTimeStamp)),
+                    getMySqlValue(unbanTimeStamp), getMySqlValue(bannedby), uuid.toString(), getMySqlValue(type)));
     }
 
     public void banIp(String ip, String bannedby) throws SQLException
@@ -193,12 +208,16 @@ public class MySQLDatabase
     {
         long unbanTimeStamp = System.currentTimeMillis();
         execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = '%s', unbantimestamp = %s WHERE isbanned = 1 AND uuid = '%s';" , PLAYER_TABLE, unbannedby, unbanTimeStamp, uuid.toString()));
+
+        //Todo: remove on 1.8?
         execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = '%s', unbantimestamp = %s WHERE isbanned = 1 AND playername = '%s';" , PLAYER_TABLE, unbannedby, unbanTimeStamp, playername));
     }
 
     public void unbanTempBan(UUID uuid, String playername, long unbanTimeStamp) throws SQLException
     {
         execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = NULL, unbantimestamp = '%s' WHERE isbanned = 1 AND uuid = '%s';" , PLAYER_TABLE, unbanTimeStamp, uuid.toString()));
+
+        //Todo: remove on 1.8?
         execute(String.format("UPDATE %s SET isbanned = 0, unbannedby = NULL, unbantimestamp = '%s' WHERE isbanned = 1 AND playername = '%s';" , PLAYER_TABLE, unbanTimeStamp, playername));
     }
 
@@ -224,10 +243,7 @@ public class MySQLDatabase
         //            "FROM " + LOG_TABLE + " WHERE " + LOG_TABLE + ".ip = '%s' GROUP BY ip HAVING count(id) > 1) dup " +
         //            "ON " + LOG_TABLE + ".ip = dup.ip AND " + LOG_TABLE + ".playername != dup.playername GROUP BY playername", ip);
 
-        String query = String.format("SELECT * from %s WHERE ip = '%s'", LOG_TABLE, ip);
-        ResultSet resultSet = executeQuery(query);
-
-        SinkLibrary.getCustomLogger().info("Query: " + query);
+        ResultSet resultSet = executeQuery(String.format("SELECT * from %s WHERE ip = '%s'", LOG_TABLE, ip));
 
         ArrayList<Account> tmp = new ArrayList<>();
         while (resultSet.next())
@@ -235,6 +251,7 @@ public class MySQLDatabase
             try
             {
                 Account acc = new Account(UUID.fromString(resultSet.getString("uuid")), resultSet.getString("playername"));
+                if(acc.getPlayername().equalsIgnoreCase("Player")) continue;
                 if(containsAccount(tmp, acc)) continue;
                 tmp.add(acc);
             }

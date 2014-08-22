@@ -1,6 +1,7 @@
 package de.static_interface.banplugin.commands;
 
 import de.static_interface.banplugin.MySQLDatabase;
+import de.static_interface.banplugin.Util;
 import de.static_interface.sinklibrary.BukkitUtil;
 import de.static_interface.sinklibrary.commands.Command;
 import de.static_interface.sinklibrary.irc.IrcCommandSender;
@@ -38,7 +39,7 @@ public class UnbanCommand extends Command
 
         try
         {
-            db.unban(BukkitUtil.getUUIDByName(targetName), targetName, sender.getName());
+            db.unban(Util.getUniqueId(targetName, db), targetName, sender.getName());
         }
         catch ( SQLException e )
         {

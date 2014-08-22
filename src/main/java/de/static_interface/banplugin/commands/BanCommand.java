@@ -1,6 +1,8 @@
 package de.static_interface.banplugin.commands;
 
+import de.static_interface.banplugin.BanType;
 import de.static_interface.banplugin.MySQLDatabase;
+import de.static_interface.banplugin.Util;
 import de.static_interface.sinklibrary.BukkitUtil;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.SinkUser;
@@ -62,7 +64,8 @@ public class BanCommand extends Command
 
         try
         {
-            db.ban(target.getName(), reason, sender.getName(), target.getUniqueId());
+            db.unban(target.getUniqueId(),target.getName(), sender.getName()); // Unban all bans done before
+            db.ban(target.getName(), reason, sender.getName(), Util.getUniqueId(targetName, db), BanType.MANUAL_BAN);
         }
         catch ( SQLException e )
         {
