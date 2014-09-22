@@ -1,9 +1,9 @@
-package de.static_interface.banplugin.commands;
+package de.static_interface.sinkbans.commands;
 
-import de.static_interface.banplugin.MySQLDatabase;
-import de.static_interface.banplugin.Util;
-import de.static_interface.banplugin.model.Account;
-import de.static_interface.banplugin.model.BanType;
+import de.static_interface.sinkbans.MySQLDatabase;
+import de.static_interface.sinkbans.Util;
+import de.static_interface.sinkbans.model.Account;
+import de.static_interface.sinkbans.model.BanType;
 import de.static_interface.sinklibrary.command.Command;
 import de.static_interface.sinklibrary.sender.IrcCommandSender;
 import de.static_interface.sinklibrary.util.BukkitUtil;
@@ -76,7 +76,7 @@ public class BanIpCommand extends Command {
         }
 
         String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat die folgende IP gesperrt: " + ChatColor.RED + ip;
-        BukkitUtil.broadcast(msg, "banplugin.notification", false);
+        BukkitUtil.broadcast(msg, "sinkbans.notification", false);
         if (sender instanceof IrcCommandSender) {
             sender.sendMessage(msg);
         }

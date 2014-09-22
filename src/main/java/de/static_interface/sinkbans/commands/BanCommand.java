@@ -1,8 +1,8 @@
-package de.static_interface.banplugin.commands;
+package de.static_interface.sinkbans.commands;
 
-import de.static_interface.banplugin.MySQLDatabase;
-import de.static_interface.banplugin.Util;
-import de.static_interface.banplugin.model.BanType;
+import de.static_interface.sinkbans.MySQLDatabase;
+import de.static_interface.sinkbans.Util;
+import de.static_interface.sinkbans.model.BanType;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.SinkUser;
 import de.static_interface.sinklibrary.command.Command;
@@ -66,7 +66,7 @@ public class BanCommand extends Command {
         }
 
         String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " gesperrt:" + reason.trim();
-        BukkitUtil.broadcast(msg, "banplugin.notification", false);
+        BukkitUtil.broadcast(msg, "sinkbans.notification", false);
         if (sender instanceof IrcCommandSender) {
             sender.sendMessage(msg);
         }

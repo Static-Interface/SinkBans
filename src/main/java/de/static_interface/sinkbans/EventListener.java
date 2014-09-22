@@ -1,8 +1,8 @@
-package de.static_interface.banplugin;
+package de.static_interface.sinkbans;
 
-import de.static_interface.banplugin.model.Account;
-import de.static_interface.banplugin.model.BanData;
-import de.static_interface.banplugin.model.BanType;
+import de.static_interface.sinkbans.model.Account;
+import de.static_interface.sinkbans.model.BanData;
+import de.static_interface.sinkbans.model.BanType;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.util.BukkitUtil;
 import org.bukkit.ChatColor;
@@ -39,8 +39,8 @@ public class EventListener implements Listener {
             if (handleData(data, event, false) || handleData(oldData, event, false)) {
                 SinkLibrary.getInstance().getCustomLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " is banned, disconnecting");
                 BukkitUtil.broadcast(
-                        ChatColor.DARK_RED + "[BanPlugin] " + ChatColor.RED + "Warnung! Der gesperrte Spieler " + event.getName() + " versuchte " +
-                        "sich gerade einzuloggen!", "banplugin.notification:", false);
+                        ChatColor.DARK_RED + "[SinkBans] " + ChatColor.RED + "Warnung! Der gesperrte Spieler " + event.getName() + " versuchte " +
+                        "sich gerade einzuloggen!", "sinkbans.notification:", false);
                 return;
             }
         } catch (SQLException e) {
@@ -53,9 +53,9 @@ public class EventListener implements Listener {
             if (handleData(data, event, true)) {
                 SinkLibrary.getInstance().getCustomLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " is IP banned, disconnecting");
                 BukkitUtil.broadcast(
-                        ChatColor.DARK_RED + "[BanPlugin] " + ChatColor.RED + "Warnung! Der IP gesperrte Spieler " + event.getName() + " mit der IP "
+                        ChatColor.DARK_RED + "[SinkBans] " + ChatColor.RED + "Warnung! Der IP gesperrte Spieler " + event.getName() + " mit der IP "
                         + ip + " versuchte " +
-                        "sich gerade einzuloggen!", "banplugin.notification:", false);
+                        "sich gerade einzuloggen!", "sinkbans.notification:", false);
                 return;
             }
         } catch (SQLException e) {
@@ -66,8 +66,8 @@ public class EventListener implements Listener {
             if (handleMultiAccount(ip, event)) {
                 SinkLibrary.getInstance().getCustomLogger()
                         .log(Level.INFO, "[Ban] Player " + event.getName() + " got banned for MulitAccounts, disconnecting");
-                BukkitUtil.broadcast(ChatColor.DARK_RED + "[BanPlugin] " + ChatColor.RED + "Warnung! " + event.getName()
-                                     + " ist ein nicht freigeschalteter MultiAccount und versuche sich einzuloggen!", "banplugin.notification",
+                BukkitUtil.broadcast(ChatColor.DARK_RED + "[SinkBans] " + ChatColor.RED + "Warnung! " + event.getName()
+                                     + " ist ein nicht freigeschalteter MultiAccount und versuche sich einzuloggen!", "sinkbans.notification",
                                      false);
                 List<Account> accounts = database.getAccounts(ip);
                 String msg = null;
@@ -78,7 +78,7 @@ public class EventListener implements Listener {
                     }
                     msg += ", " + acc.getPlayername();
                 }
-                BukkitUtil.broadcast(ChatColor.RED + "Weitere Accounts: " + ChatColor.RESET + msg, "banplugin.notification", false);
+                BukkitUtil.broadcast(ChatColor.RED + "Weitere Accounts: " + ChatColor.RESET + msg, "sinkbans.notification", false);
             }
         } catch (SQLException e) {
             e.printStackTrace();

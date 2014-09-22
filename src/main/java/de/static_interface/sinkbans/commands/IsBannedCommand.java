@@ -1,9 +1,9 @@
-package de.static_interface.banplugin.commands;
+package de.static_interface.sinkbans.commands;
 
-import de.static_interface.banplugin.DateUtil;
-import de.static_interface.banplugin.MySQLDatabase;
-import de.static_interface.banplugin.Util;
-import de.static_interface.banplugin.model.BanData;
+import de.static_interface.sinkbans.DateUtil;
+import de.static_interface.sinkbans.MySQLDatabase;
+import de.static_interface.sinkbans.Util;
+import de.static_interface.sinkbans.model.BanData;
 import de.static_interface.sinklibrary.command.Command;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;

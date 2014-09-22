@@ -1,8 +1,8 @@
-package de.static_interface.banplugin;
+package de.static_interface.sinkbans;
 
-import de.static_interface.banplugin.model.Account;
-import de.static_interface.banplugin.model.BanData;
-import de.static_interface.banplugin.model.BanType;
+import de.static_interface.sinkbans.model.Account;
+import de.static_interface.sinkbans.model.BanData;
+import de.static_interface.sinkbans.model.BanType;
 import de.static_interface.sinklibrary.util.BukkitUtil;
 import org.bukkit.ChatColor;
 

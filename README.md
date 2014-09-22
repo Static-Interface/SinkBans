@@ -1,4 +1,4 @@
-BanPlugin
+SinkBans
 =========
 
-BanPlugin for Adventuria
+SinkBans for Adventuria

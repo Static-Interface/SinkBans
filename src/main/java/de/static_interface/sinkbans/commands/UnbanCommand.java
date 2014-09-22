@@ -1,7 +1,7 @@
-package de.static_interface.banplugin.commands;
+package de.static_interface.sinkbans.commands;
 
-import de.static_interface.banplugin.MySQLDatabase;
-import de.static_interface.banplugin.Util;
+import de.static_interface.sinkbans.MySQLDatabase;
+import de.static_interface.sinkbans.Util;
 import de.static_interface.sinklibrary.command.Command;
 import de.static_interface.sinklibrary.sender.IrcCommandSender;
 import de.static_interface.sinklibrary.util.BukkitUtil;
@@ -42,7 +42,7 @@ public class UnbanCommand extends Command {
             return true;
         }
         String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " entsperrt.";
-        BukkitUtil.broadcast(msg, "banplugin.notification", false);
+        BukkitUtil.broadcast(msg, "sinkbans.notification", false);
         if (sender instanceof IrcCommandSender) {
             sender.sendMessage(msg);
         }

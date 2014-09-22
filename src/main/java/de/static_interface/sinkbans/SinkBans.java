@@ -1,26 +1,26 @@
-package de.static_interface.banplugin;
+package de.static_interface.sinkbans;
 
-import de.static_interface.banplugin.commands.AllowMultiAccountCommand;
-import de.static_interface.banplugin.commands.BDebugCommand;
-import de.static_interface.banplugin.commands.BanCommand;
-import de.static_interface.banplugin.commands.BanIpCommand;
-import de.static_interface.banplugin.commands.IsBannedCommand;
-import de.static_interface.banplugin.commands.TempBanCommand;
-import de.static_interface.banplugin.commands.UnbanCommand;
-import de.static_interface.banplugin.commands.UnbanIpCommand;
+import de.static_interface.sinkbans.commands.AllowMultiAccountCommand;
+import de.static_interface.sinkbans.commands.BDebugCommand;
+import de.static_interface.sinkbans.commands.BanCommand;
+import de.static_interface.sinkbans.commands.BanIpCommand;
+import de.static_interface.sinkbans.commands.IsBannedCommand;
+import de.static_interface.sinkbans.commands.TempBanCommand;
+import de.static_interface.sinkbans.commands.UnbanCommand;
+import de.static_interface.sinkbans.commands.UnbanIpCommand;
 import de.static_interface.sinklibrary.SinkLibrary;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.SQLException;
 
-public class BanPlugin extends JavaPlugin {
+public class SinkBans extends JavaPlugin {
 
     MySQLDatabase db;
 
     public void onEnable() {
         try {
-            db = new MySQLDatabase("localhost", "3306", "banplugin", "root", "");
+            db = new MySQLDatabase("localhost", "3306", "sinkbans", "root", "");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

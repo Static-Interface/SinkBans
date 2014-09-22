@@ -1,7 +1,7 @@
-package de.static_interface.banplugin.commands;
+package de.static_interface.sinkbans.commands;
 
-import de.static_interface.banplugin.MySQLDatabase;
-import de.static_interface.banplugin.model.Account;
+import de.static_interface.sinkbans.MySQLDatabase;
+import de.static_interface.sinkbans.model.Account;
 import de.static_interface.sinklibrary.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;

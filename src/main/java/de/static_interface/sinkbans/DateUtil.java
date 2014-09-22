@@ -1,4 +1,4 @@
-package de.static_interface.banplugin;
+package de.static_interface.sinkbans;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;

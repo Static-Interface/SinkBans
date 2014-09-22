@@ -1,4 +1,4 @@
-package de.static_interface.banplugin.model;
+package de.static_interface.sinkbans.model;
 
 import java.util.UUID;
 
