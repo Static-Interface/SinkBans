@@ -20,7 +20,7 @@ public class EventListener implements Listener
         this.database = database;
     }
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onAsyncPlayerPreLogin(AsyncPlayerPreLoginEvent event)
     {
         List<BanData> data;

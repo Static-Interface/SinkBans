@@ -45,7 +45,9 @@ public class Util
         UUID uuid = null;
         try
         {
-            ResultSet result = database.executeQuery(String.format("SELECT * FROM %s WHERE playername='%s'", MySQLDatabase.LOG_TABLE, playername));
+            ResultSet result = database.executeQuery(String.format(
+                    "SELECT * FROM %s WHERE playername=?",
+                    MySQLDatabase.LOG_TABLE), playername);
             if(result.next())
             {
                 uuid = UUID.fromString(result.getString("uuid"));
@@ -57,7 +59,7 @@ public class Util
         }
         if(uuid == null)
         {
-            uuid = BukkitUtil.getUUIDByName(playername);;
+            uuid = BukkitUtil.getUUIDByName(playername);
         }
         return uuid;
     }
