@@ -34,13 +34,13 @@ public class BanPlugin extends JavaPlugin
 
     private void registerCommands()
     {
-        SinkLibrary.registerCommand("ban", new BanCommand(this, db));
-        SinkLibrary.registerCommand("banip", new BanIpCommand(this, db));
-        SinkLibrary.registerCommand("isbanned", new IsBannedCommand(this, db));
-        SinkLibrary.registerCommand("tempban", new TempBanCommand(this, db));
-        SinkLibrary.registerCommand("unban", new UnbanCommand(this, db));
-        SinkLibrary.registerCommand("unbanip", new UnbanIpCommand(this, db));
-        SinkLibrary.registerCommand("allowmultiaccount", new AllowMultiAccountCommand(this, db));
-        SinkLibrary.registerCommand("bdebug", new BDebugCommand(this, db));
+        SinkLibrary.getInstance().registerCommand("ban", new BanCommand(this, db));
+        SinkLibrary.getInstance().registerCommand("banip", new BanIpCommand(this, db));
+        SinkLibrary.getInstance().registerCommand("isbanned", new IsBannedCommand(this, db));
+        SinkLibrary.getInstance().registerCommand("tempban", new TempBanCommand(this, db));
+        SinkLibrary.getInstance().registerCommand("unban", new UnbanCommand(this, db));
+        SinkLibrary.getInstance().registerCommand("unbanip", new UnbanIpCommand(this, db));
+        SinkLibrary.getInstance().registerCommand("allowmultiaccount", new AllowMultiAccountCommand(this, db));
+        SinkLibrary.getInstance().registerCommand("bdebug", new BDebugCommand(this, db));
     }
 }

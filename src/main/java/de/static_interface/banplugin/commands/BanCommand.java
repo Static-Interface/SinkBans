@@ -3,11 +3,11 @@ package de.static_interface.banplugin.commands;
 import de.static_interface.banplugin.BanType;
 import de.static_interface.banplugin.MySQLDatabase;
 import de.static_interface.banplugin.Util;
-import de.static_interface.sinklibrary.BukkitUtil;
+import de.static_interface.sinklibrary.util.BukkitUtil;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.SinkUser;
-import de.static_interface.sinklibrary.commands.Command;
-import de.static_interface.sinklibrary.irc.IrcCommandSender;
+import de.static_interface.sinklibrary.command.Command;
+import de.static_interface.sinklibrary.sender.IrcCommandSender;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
@@ -50,7 +50,7 @@ public class BanCommand extends Command
 
         reason = ChatColor.RED + reason;
 
-        SinkUser target = SinkLibrary.getUser(args[0]);
+        SinkUser target = SinkLibrary.getInstance().getUser(args[0]);
 
         String targetName = target.isOnline() ? target.getName() : args[0];
         String prefix = BukkitUtil.getSenderName(sender);

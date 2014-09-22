@@ -51,7 +51,7 @@
         <dependency>
             <groupId>de.static_interface</groupId>
             <artifactId>SinkLibrary</artifactId>
-            <version>1.9.8.1-SNAPSHOT</version>
+            <version>1.9.8.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

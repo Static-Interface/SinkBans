@@ -3,7 +3,7 @@ package de.static_interface.banplugin.commands;
 import de.static_interface.banplugin.Account;
 import de.static_interface.banplugin.MySQLDatabase;
 import de.static_interface.banplugin.Util;
-import de.static_interface.sinklibrary.commands.Command;
+import de.static_interface.sinklibrary.command.Command;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;

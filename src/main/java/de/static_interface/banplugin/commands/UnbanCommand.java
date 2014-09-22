@@ -2,9 +2,9 @@ package de.static_interface.banplugin.commands;
 
 import de.static_interface.banplugin.MySQLDatabase;
 import de.static_interface.banplugin.Util;
-import de.static_interface.sinklibrary.BukkitUtil;
-import de.static_interface.sinklibrary.commands.Command;
-import de.static_interface.sinklibrary.irc.IrcCommandSender;
+import de.static_interface.sinklibrary.util.BukkitUtil;
+import de.static_interface.sinklibrary.command.Command;
+import de.static_interface.sinklibrary.sender.IrcCommandSender;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;

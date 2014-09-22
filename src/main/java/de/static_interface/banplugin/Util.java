@@ -1,6 +1,6 @@
 package de.static_interface.banplugin;
 
-import de.static_interface.sinklibrary.BukkitUtil;
+import de.static_interface.sinklibrary.util.BukkitUtil;
 
 import java.net.InetAddress;
 import java.sql.ResultSet;

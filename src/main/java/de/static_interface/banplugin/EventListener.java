@@ -1,6 +1,6 @@
 package de.static_interface.banplugin;
 
-import de.static_interface.sinklibrary.BukkitUtil;
+import de.static_interface.sinklibrary.util.BukkitUtil;
 import de.static_interface.sinklibrary.SinkLibrary;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
@@ -40,7 +40,7 @@ public class EventListener implements Listener
             data = database.getBanData(event.getUniqueId().toString(), false);
             if ( handleData(data, event, false) || handleData(oldData, event, false))
             {
-                SinkLibrary.getCustomLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " is banned, disconnecting");
+                SinkLibrary.getInstance().getCustomLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " is banned, disconnecting");
                 BukkitUtil.broadcast(ChatColor.DARK_RED + "[BanPlugin] " + ChatColor.RED + "Warnung! Der gesperrte Spieler " + event.getName() + " versuchte " +
                         "sich gerade einzuloggen!", "banplugin.notification:", false);
                 return;
@@ -57,7 +57,7 @@ public class EventListener implements Listener
             data = database.getBanData(ip, true);
             if ( handleData(data, event, true))
             {
-                SinkLibrary.getCustomLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " is IP banned, disconnecting" );
+                SinkLibrary.getInstance().getCustomLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " is IP banned, disconnecting" );
                 BukkitUtil.broadcast(ChatColor.DARK_RED + "[BanPlugin] " + ChatColor.RED + "Warnung! Der IP gesperrte Spieler " + event.getName() + " mit der IP " + ip + " versuchte " +
                         "sich gerade einzuloggen!", "banplugin.notification:", false);
                 return;
@@ -73,7 +73,7 @@ public class EventListener implements Listener
         {
             if( handleMultiAccount(ip, event))
             {
-                SinkLibrary.getCustomLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " got banned for MulitAccounts, disconnecting");
+                SinkLibrary.getInstance().getCustomLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " got banned for MulitAccounts, disconnecting");
                 BukkitUtil.broadcast(ChatColor.DARK_RED + "[BanPlugin] " + ChatColor.RED + "Warnung! " + event.getName() + " ist ein nicht freigeschalteter MultiAccount und versuche sich einzuloggen!", "banplugin.notification", false);
                 List<Account> accounts = database.getAccounts(ip);
                 String msg = null;

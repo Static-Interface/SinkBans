@@ -1,6 +1,6 @@
 package de.static_interface.banplugin;
 
-import de.static_interface.sinklibrary.BukkitUtil;
+import de.static_interface.sinklibrary.util.BukkitUtil;
 import org.bukkit.ChatColor;
 
 import java.sql.*;
