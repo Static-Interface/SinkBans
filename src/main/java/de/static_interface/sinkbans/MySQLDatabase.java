@@ -200,8 +200,10 @@ public class MySQLDatabase {
             return;
         }
         long banTimeStamp = System.currentTimeMillis();
-        reason = reason.trim();
-        reason = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', reason));
+        if (reason != null) {
+            reason = reason.trim();
+            reason = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', reason));
+        }
         execute(String.format("INSERT INTO %s VALUES(NULL, ?, ?, ?, '-1', '1', ?, NULL, ?, ?)",
                               PLAYER_TABLE), playername, reason, banTimeStamp, bannedby, uuid.toString(), type);
     }
