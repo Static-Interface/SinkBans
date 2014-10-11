@@ -4,9 +4,9 @@ import de.static_interface.sinkbans.MySQLDatabase;
 import de.static_interface.sinkbans.Util;
 import de.static_interface.sinkbans.model.BanType;
 import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinklibrary.SinkUser;
-import de.static_interface.sinklibrary.command.Command;
-import de.static_interface.sinklibrary.sender.IrcCommandSender;
+import de.static_interface.sinklibrary.api.command.SinkCommand;
+import de.static_interface.sinklibrary.api.sender.IrcCommandSender;
+import de.static_interface.sinklibrary.user.IngameUser;
 import de.static_interface.sinklibrary.util.BukkitUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -14,7 +14,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.sql.SQLException;
 
-public class BanCommand extends Command {
+public class BanCommand extends SinkCommand {
 
     private MySQLDatabase db;
 
@@ -45,7 +45,7 @@ public class BanCommand extends Command {
 
         reason = ChatColor.RED + reason;
 
-        SinkUser target = SinkLibrary.getInstance().getUser(args[0]);
+        IngameUser target = SinkLibrary.getInstance().getIngameUser(args[0]);
 
         String targetName = target.isOnline() ? target.getName() : args[0];
         String prefix = BukkitUtil.getSenderName(sender);

@@ -3,8 +3,8 @@ package de.static_interface.sinkbans.commands;
 import de.static_interface.sinkbans.MySQLDatabase;
 import de.static_interface.sinkbans.Util;
 import de.static_interface.sinkbans.model.Account;
-import de.static_interface.sinklibrary.command.Command;
-import de.static_interface.sinklibrary.sender.IrcCommandSender;
+import de.static_interface.sinklibrary.api.command.SinkCommand;
+import de.static_interface.sinklibrary.api.sender.IrcCommandSender;
 import de.static_interface.sinklibrary.util.BukkitUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -13,7 +13,7 @@ import org.bukkit.plugin.Plugin;
 import java.sql.SQLException;
 import java.util.List;
 
-public class UnbanIpCommand extends Command {
+public class UnbanIpCommand extends SinkCommand {
 
     private MySQLDatabase db;
 

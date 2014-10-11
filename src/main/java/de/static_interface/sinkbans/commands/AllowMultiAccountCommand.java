@@ -3,7 +3,7 @@ package de.static_interface.sinkbans.commands;
 import de.static_interface.sinkbans.MySQLDatabase;
 import de.static_interface.sinkbans.Util;
 import de.static_interface.sinkbans.model.Account;
-import de.static_interface.sinklibrary.command.Command;
+import de.static_interface.sinklibrary.api.command.SinkCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
@@ -11,7 +11,7 @@ import org.bukkit.plugin.Plugin;
 import java.sql.SQLException;
 import java.util.UUID;
 
-public class AllowMultiAccountCommand extends Command {
+public class AllowMultiAccountCommand extends SinkCommand {
 
     private final MySQLDatabase db;
 

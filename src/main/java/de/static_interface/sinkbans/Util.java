@@ -40,6 +40,7 @@ public class Util {
 
     public static UUID getUniqueId(String playername, MySQLDatabase database) {
         UUID uuid = null;
+
         try {
             ResultSet result = database.executeQuery(String.format(
                     "SELECT * FROM %s WHERE playername=?",
@@ -51,7 +52,7 @@ public class Util {
             e.printStackTrace();
         }
         if (uuid == null) {
-            uuid = BukkitUtil.getUUIDByName(playername);
+            uuid = BukkitUtil.getUniqueIdByName(playername);
         }
         return uuid;
     }

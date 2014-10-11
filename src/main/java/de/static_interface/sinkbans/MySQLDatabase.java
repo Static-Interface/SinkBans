@@ -139,7 +139,7 @@ public class MySQLDatabase {
         List<BanData> entries = getFromResultSet(result, false);
 
         for (BanData entry : entries) {
-            UUID uuid = BukkitUtil.getUUIDByName(entry.getName());
+            UUID uuid = BukkitUtil.getUniqueIdByName(entry.getName());
             execute(String.format("UPDATE %s SET uuid = ? WHERE playername = ?",
                                   PLAYER_TABLE),
                     uuid.toString(), entry.getName());
