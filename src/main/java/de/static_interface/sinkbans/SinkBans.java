@@ -13,12 +13,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.SQLException;
+import java.util.logging.Level;
 
 public class SinkBans extends JavaPlugin {
 
     MySQLDatabase db;
 
     public void onEnable() {
+        if(!checkDependencies()) return;
+
         try {
             db = new MySQLDatabase("localhost", "3306", "sinkbans", "root", "");
         } catch (Exception e) {
@@ -31,6 +34,16 @@ public class SinkBans extends JavaPlugin {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean checkDependencies() {
+        if (Bukkit.getPluginManager().getPlugin("SinkLibrary") == null) {
+            getLogger().log(Level.WARNING, "This Plugin requires SinkLibrary!");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return false;
+        }
+
+        return SinkLibrary.getInstance().validateApiVersion(SinkLibrary.API_VERSION, this);
     }
 
     private void registerCommands() {
