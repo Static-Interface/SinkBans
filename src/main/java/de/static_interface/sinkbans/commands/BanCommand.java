@@ -21,11 +21,7 @@ public class BanCommand extends SinkCommand {
     public BanCommand(Plugin plugin, MySQLDatabase db) {
         super(plugin);
         this.db = db;
-    }
-
-    @Override
-    public boolean isIrcOpOnly() {
-        return true;
+        getCommandOptions().setIrcOpOnly(true);
     }
 
     @Override

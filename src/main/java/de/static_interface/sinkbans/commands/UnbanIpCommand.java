@@ -20,11 +20,7 @@ public class UnbanIpCommand extends SinkCommand {
     public UnbanIpCommand(Plugin plugin, MySQLDatabase db) {
         super(plugin);
         this.db = db;
-    }
-
-    @Override
-    public boolean isIrcOpOnly() {
-        return true;
+        getCommandOptions().setIrcOpOnly(true);
     }
 
     @Override

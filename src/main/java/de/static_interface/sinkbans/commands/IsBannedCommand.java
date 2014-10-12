@@ -4,6 +4,7 @@ import de.static_interface.sinkbans.DateUtil;
 import de.static_interface.sinkbans.MySQLDatabase;
 import de.static_interface.sinkbans.Util;
 import de.static_interface.sinkbans.model.BanData;
+import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.api.command.SinkCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -31,7 +32,7 @@ public class IsBannedCommand extends SinkCommand {
             return false;
         }
 
-        String search = args[0];
+        String search = SinkLibrary.getInstance().getIngameUser(args[0]).getName();
 
         boolean ip = Util.isValidIp(search);
 

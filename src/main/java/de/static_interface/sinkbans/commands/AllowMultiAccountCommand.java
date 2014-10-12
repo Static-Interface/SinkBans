@@ -3,6 +3,7 @@ package de.static_interface.sinkbans.commands;
 import de.static_interface.sinkbans.MySQLDatabase;
 import de.static_interface.sinkbans.Util;
 import de.static_interface.sinkbans.model.Account;
+import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.api.command.SinkCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -18,11 +19,7 @@ public class AllowMultiAccountCommand extends SinkCommand {
     public AllowMultiAccountCommand(Plugin plugin, MySQLDatabase db) {
         super(plugin);
         this.db = db;
-    }
-
-    @Override
-    public boolean isIrcOpOnly() {
-        return true;
+        getCommandOptions().setIrcOpOnly(true);
     }
 
     @Override
@@ -31,7 +28,7 @@ public class AllowMultiAccountCommand extends SinkCommand {
             return false;
         }
 
-        String name = args[0];
+        String name = SinkLibrary.getInstance().getIngameUser(args[0]).getName();
         UUID uuid = Util.getUniqueId(name, db);
 
         try {

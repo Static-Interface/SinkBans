@@ -22,11 +22,7 @@ public class BanIpCommand extends SinkCommand {
     public BanIpCommand(Plugin plugin, MySQLDatabase db) {
         super(plugin);
         this.db = db;
-    }
-
-    @Override
-    public boolean isIrcOpOnly() {
-        return true;
+        getCommandOptions().setIrcOpOnly(true);
     }
 
     @Override

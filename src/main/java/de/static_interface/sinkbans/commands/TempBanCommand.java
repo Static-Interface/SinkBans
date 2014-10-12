@@ -21,6 +21,7 @@ public class TempBanCommand extends SinkCommand {
     public TempBanCommand(Plugin plugin, MySQLDatabase db) {
         super(plugin);
         this.db = db;
+        getCommandOptions().setIrcOpOnly(true);
     }
 
     public static String getFinalArg(final String[] args, final int start) {
@@ -35,11 +36,6 @@ public class TempBanCommand extends SinkCommand {
     }
 
     @Override
-    public boolean isIrcOpOnly() {
-        return true;
-    }
-
-    @Override
     public boolean onExecute(CommandSender sender, String label, String[] args) {
         if (args.length < 1) {
             return false;
@@ -48,6 +44,7 @@ public class TempBanCommand extends SinkCommand {
         IngameUser target = SinkLibrary.getInstance().getIngameUser(args[0]);
 
         String targetName = target.isOnline() ? target.getName() : args[0];
+
         String prefix = BukkitUtil.getSenderName(sender);
 
         final String time = getFinalArg(args, 1);

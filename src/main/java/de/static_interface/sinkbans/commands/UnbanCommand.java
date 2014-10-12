@@ -2,8 +2,10 @@ package de.static_interface.sinkbans.commands;
 
 import de.static_interface.sinkbans.MySQLDatabase;
 import de.static_interface.sinkbans.Util;
+import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.api.command.SinkCommand;
 import de.static_interface.sinklibrary.api.sender.IrcCommandSender;
+import de.static_interface.sinklibrary.user.IngameUser;
 import de.static_interface.sinklibrary.util.BukkitUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -18,11 +20,7 @@ public class UnbanCommand extends SinkCommand {
     public UnbanCommand(Plugin plugin, MySQLDatabase db) {
         super(plugin);
         this.db = db;
-    }
-
-    @Override
-    public boolean isIrcOpOnly() {
-        return true;
+        getCommandOptions().setIrcOpOnly(true);
     }
 
     @Override
@@ -32,10 +30,11 @@ public class UnbanCommand extends SinkCommand {
         }
 
         String targetName = args[0];
+        IngameUser target = SinkLibrary.getInstance().getIngameUser(args[0]);
         String prefix = BukkitUtil.getSenderName(sender);
 
         try {
-            db.unban(Util.getUniqueId(targetName, db), targetName, sender.getName());
+            db.unban(Util.getUniqueId(target.getName(), db), target.getName(), sender.getName());
         } catch (SQLException e) {
             e.printStackTrace();
             sender.sendMessage(ChatColor.DARK_RED + "Ein Fehler ist aufgetreten!");
