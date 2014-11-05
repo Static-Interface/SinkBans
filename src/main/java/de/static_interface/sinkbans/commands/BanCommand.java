@@ -41,7 +41,7 @@ public class BanCommand extends SinkCommand {
 
         reason = ChatColor.RED + reason;
 
-        IngameUser target = SinkLibrary.getInstance().getIngameUser(args[0]);
+        IngameUser target = SinkLibrary.getInstance().getIngameUser(args[0], false);
 
         String targetName = target.isOnline() ? target.getName() : args[0];
         String prefix = BukkitUtil.getSenderName(sender);

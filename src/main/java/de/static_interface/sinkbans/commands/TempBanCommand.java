@@ -41,7 +41,7 @@ public class TempBanCommand extends SinkCommand {
             return false;
         }
 
-        IngameUser target = SinkLibrary.getInstance().getIngameUser(args[0]);
+        IngameUser target = SinkLibrary.getInstance().getIngameUser(args[0], false);
 
         String targetName = target.isOnline() ? target.getName() : args[0];
 

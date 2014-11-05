@@ -28,7 +28,7 @@ public class AllowMultiAccountCommand extends SinkCommand {
             return false;
         }
 
-        String name = SinkLibrary.getInstance().getIngameUser(args[0]).getName();
+        String name = SinkLibrary.getInstance().getIngameUser(args[0], false).getName();
         UUID uuid = Util.getUniqueId(name, db);
 
         try {

@@ -30,7 +30,7 @@ public class UnbanCommand extends SinkCommand {
         }
 
         String targetName = args[0];
-        IngameUser target = SinkLibrary.getInstance().getIngameUser(args[0]);
+        IngameUser target = SinkLibrary.getInstance().getIngameUser(args[0], false);
         String prefix = BukkitUtil.getSenderName(sender);
 
         try {
