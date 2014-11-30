@@ -39,7 +39,7 @@
     </organization>
 
     <ciManagement>
-        <system>Static Interface</system>
+        <system>Static Interface CI</system>
         <url>http://ci.static-interface.de/</url>
     </ciManagement>
 
