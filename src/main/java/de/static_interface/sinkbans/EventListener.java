@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2013 - 2014 http://static-interface.de and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.static_interface.sinkbans;
 
 import de.static_interface.sinkbans.model.Account;
@@ -64,21 +81,26 @@ public class EventListener implements Listener {
 
         try {
             if (handleMultiAccount(ip, event)) {
-                SinkLibrary.getInstance().getCustomLogger()
-                        .log(Level.INFO, "[Ban] Player " + event.getName() + " got banned for MulitAccounts, disconnecting");
                 BukkitUtil.broadcast(ChatColor.DARK_RED + "[SinkBans] " + ChatColor.RED + "Warnung! " + event.getName()
                                      + " ist ein nicht freigeschalteter MultiAccount und versuche sich einzuloggen!", "sinkbans.notification",
                                      false);
                 List<Account> accounts = database.getAccounts(ip);
                 String msg = null;
+                int i = 0;
                 for (Account acc : accounts) {
+                    if(acc.getPlayername().equalsIgnoreCase(event.getName())) {
+                        continue;
+                    }
                     if (msg == null) {
                         msg = acc.getPlayername();
+                        i++;
                         continue;
                     }
                     msg += ", " + acc.getPlayername();
+                    i++;
                 }
-                BukkitUtil.broadcast(ChatColor.RED + "Weitere Accounts: " + ChatColor.RESET + msg, "sinkbans.notification", false);
+                if(i > 0)
+                    BukkitUtil.broadcast(ChatColor.RED + "Weitere Accounts: " + ChatColor.RESET + msg, "sinkbans.notification", false);
             }
         } catch (SQLException e) {
             e.printStackTrace();
