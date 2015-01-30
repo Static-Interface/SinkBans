@@ -4,7 +4,7 @@ description: Ban Players!
 author: Trojaner
 website: http://static-interface.de
 main: de.static_interface.sinkbans.SinkBans
-soft-depend: [SinkLibrary]
+depend: [SinkLibrary]
 
 commands:
   ban:
