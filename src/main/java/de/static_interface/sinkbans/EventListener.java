@@ -32,6 +32,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Level;
 
+import javax.annotation.Nullable;
+
 public class EventListener implements Listener {
 
     private MySQLDatabase database;
@@ -80,27 +82,13 @@ public class EventListener implements Listener {
         }
 
         try {
-            if (handleMultiAccount(ip, event)) {
+            List<Account> accounts = database.getAccounts(ip);
+            String accountMessage = getAccountMessage(accounts, event.getName());
+            if (accountMessage != null && handleMultiAccount(ip, event)) {
                 BukkitUtil.broadcast(ChatColor.DARK_RED + "[SinkBans] " + ChatColor.RED + "Warnung! " + event.getName()
                                      + " ist ein nicht freigeschalteter MultiAccount und versuche sich einzuloggen!", "sinkbans.notification",
                                      false);
-                List<Account> accounts = database.getAccounts(ip);
-                String msg = null;
-                int i = 0;
-                for (Account acc : accounts) {
-                    if(acc.getPlayername().equalsIgnoreCase(event.getName())) {
-                        continue;
-                    }
-                    if (msg == null) {
-                        msg = acc.getPlayername();
-                        i++;
-                        continue;
-                    }
-                    msg += ", " + acc.getPlayername();
-                    i++;
-                }
-                if(i > 0)
-                    BukkitUtil.broadcast(ChatColor.RED + "Weitere Accounts: " + ChatColor.RESET + msg, "sinkbans.notification", false);
+                BukkitUtil.broadcast(ChatColor.RED + "Weitere Accounts: " + ChatColor.RESET + accountMessage, "sinkbans.notification", false);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -114,7 +102,7 @@ public class EventListener implements Listener {
         }
         boolean illegal = false;
         for (Account account : accounts) {
-            if (!isAllowed(account)) {
+            if (!isAllowed(account, ip)) {
                 illegal = true;
                 break;
             }
@@ -131,14 +119,36 @@ public class EventListener implements Listener {
             database.ban(account.getPlayername(), null, null, account.getUniqueId(), BanType.AUTO_MULTI_ACC);
         }
 
+        String accountMessage = getAccountMessage(accounts, event.getName());
         event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_BANNED,
-                       "Unangemeldeter MultiAccount. Bitte melde dich bei einem Moderator oder Administrator.");
+                       "Unangemeldeter MultiAccount. Bitte melde dich bei einem Minister oder Administrator." + (accountMessage != null ? " (Accounts: " + accountMessage  + ")" : ""));
         return true;
     }
 
-    private boolean isAllowed(Account account) {
+    private String getAccountMessage(List<Account> accounts, @Nullable String ignoredName) {
+        String accountMessage = null;
+        for (Account acc : accounts) {
+            if (ignoredName != null && acc.getPlayername().equalsIgnoreCase(ignoredName)) {
+                continue;
+            }
+            if (accountMessage == null) {
+                continue;
+            }
+            accountMessage += ", " + acc.getPlayername();
+        }
+
+        return accountMessage;
+    }
+
+    private boolean isAllowed(Account account, String ip) {
         try {
-            return database.isAllowedMultiAccount(account);
+            if(database.countIps(ip, 14 * 24) > 2) {
+                return database.isAllowedMultiAccount(account);
+            }
+            else if(database.countIps(ip, 14 * 24) > 1 && database.getFirstJoin(account, ip) >= System.currentTimeMillis() - 2 * 60 * 60 * 1000 && database.getFirstJoin(account, ip) <= System.currentTimeMillis() - 24 * 60 * 60 * 1000) {
+                return database.isAllowedMultiAccount(account);
+            }
+            return true;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;

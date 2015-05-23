@@ -116,7 +116,7 @@ public class MySQLDatabase {
         PreparedStatement statment = connection.prepareStatement(query);
         int i = 1;
         for (Object s : paramObjects) {
-            statment.setObject(i, s);
+            statment.setObject(i, s == null ? null : s.toString());
             i++;
         }
         return statment.executeQuery();
@@ -200,6 +200,7 @@ public class MySQLDatabase {
                 if (!isIp) {
                     data.setUniqueId(resultSet.getString("uuid"));
                 }
+
                 tmp.add(data);
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -299,6 +300,54 @@ public class MySQLDatabase {
             }
         }
         return tmp;
+    }
+
+
+    public int countIps(String ip, int hours) throws SQLException {
+        try {
+            ResultSet resultSet = executeQuery(String.format(
+                    "SELECT * from %s WHERE ip = ? AND timestamp > ?", LOG_TABLE), ip, System.currentTimeMillis() - hours * 60 * 60 * 1000);
+
+            int i = 0;
+            while (resultSet.next()) {
+                i++;
+            }
+
+            return i;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    public long getFirstJoin(Account account, String ip) throws SQLException {
+        try {
+            ResultSet resultSet = executeQuery(String.format(
+                    "SELECT * from %s WHERE ip = ?", LOG_TABLE), ip);
+
+            long minValueIp = getMinValue(resultSet, "timestamp");
+
+            resultSet = executeQuery(String.format(
+                    "SELECT * from %s WHERE uuid = ?", LOG_TABLE), account.getUniqueId().toString());
+
+            long minValueAccount = getMinValue(resultSet, "timestamp");
+
+            return minValueIp < minValueAccount ? minValueIp : minValueAccount;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private long getMinValue(ResultSet resultSet, String column) throws SQLException {
+        long minTime = Long.MAX_VALUE;
+        while(resultSet.next()) {
+            long joinTime = resultSet.getLong(column);
+            if(joinTime < minTime) {
+                minTime = joinTime;
+            }
+        }
+        if(minTime == Long.MAX_VALUE) return 0;
+
+        return minTime;
     }
 
     private boolean containsAccount(ArrayList<Account> tmp, Account acc) {

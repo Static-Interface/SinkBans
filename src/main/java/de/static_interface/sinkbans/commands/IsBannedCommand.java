@@ -43,6 +43,7 @@ public class IsBannedCommand extends SinkCommand {
 
     @Override
     public boolean onExecute(CommandSender sender, String label, String[] args) {
+
         List<BanData> datas = new ArrayList<>();
 
         if (args.length < 1) {
@@ -57,7 +58,7 @@ public class IsBannedCommand extends SinkCommand {
         if (!ip) {
             try {
                 search = Util.getUniqueId(search, db).toString();
-                datas = db.getBanData(search, false);
+                datas = db.getBanData(search, ip);
                 datas.addAll(db.getOldBanData(args[0]));
             } catch (SQLException e) {
                 e.printStackTrace();

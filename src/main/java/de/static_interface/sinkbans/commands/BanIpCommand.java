@@ -46,6 +46,7 @@ public class BanIpCommand extends SinkCommand {
     @Override
     public boolean onExecute(CommandSender sender, String label, String[] args) {
         //todo: add regex
+
         if (args.length < 1) {
             return false;
         }
