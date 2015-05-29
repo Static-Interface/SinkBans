@@ -160,7 +160,8 @@ public class EventListener implements Listener {
             return false;
         }
         for (BanData data : datas) {
-            if (!isIp && data.getUniqueId() == null || data.getUniqueId().isEmpty()) {
+            if(data == null) continue;
+            if ((!isIp && data.getUniqueId() == null) || (data.getUniqueId() == null || data.getUniqueId().isEmpty())) {
                 try {
                     database.fixBan(data, event.getUniqueId());
                 } catch (SQLException e) {
