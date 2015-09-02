@@ -51,22 +51,32 @@ commands:
     usage: "/<command> <ip>"
     permission: sinkbans.ban
 
+  banrequest:
+    description: Request a ban
+    aliases: banr
+    permission: sinkbans.banrequest
+
 permissions:
   sinkbans.*:
     description: Allows access to all ban commands
     default: op
     children:
-      banplugin.ban: true
+      sinkbans.ban: true
       sinkbans.tempban: true
       sinkbans.isbanned: true
       sinkbans.allowmultiaccount: true
       sinkbans.notification: true
+      sinkbans.banrequest: true
 
   sinkbans.ban:
     description: Allows to ban players
     default: op
 
   sinkbans.tempban:
+    description: Allows to temp ban players
+    default: op
+
+  sinkbans.banrequest:
     description: Allows to temp ban players
     default: op
 
@@ -80,4 +90,10 @@ permissions:
 
   sinkbans.notification:
     description: Allows to receive messages if someone is trying to join when banned
+    default: op
+
+  sinkbans.banrequestnotification:
+    default: op
+
+  sinkbans.banrequestacceptednotification:
     default: op

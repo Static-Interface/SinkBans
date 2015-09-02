@@ -73,6 +73,14 @@ public class TempBanCommand extends SinkCommand {
             return true;
         }
 
+        long bantime = unbantimestamp - System.currentTimeMillis();
+        long maxtime = 2 * 60 * 60 * 1000;
+
+        if(!sender.hasPermission("sinkbans.ban") && bantime > maxtime) {
+            sender.sendMessage(ChatColor.DARK_RED + "Fehler: " + ChatColor.RED + "Du kannst nur für maximal 2 Stunden bannen!");
+            return true;
+        }
+
         String reason = ChatColor.RED + "Zeitlich gesperrt vom Server fuer " + DateUtil.formatDateDiff(unbantimestamp);
         String reasonPrefix = ChatColor.DARK_RED + "Gesperrt: ";
 

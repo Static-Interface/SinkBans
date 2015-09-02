@@ -19,6 +19,7 @@ package de.static_interface.sinkbans;
 
 import de.static_interface.sinkbans.model.Account;
 import de.static_interface.sinkbans.model.BanData;
+import de.static_interface.sinkbans.model.BanRequestData;
 import de.static_interface.sinkbans.model.BanType;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.util.BukkitUtil;
@@ -27,6 +28,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -90,6 +92,34 @@ public class EventListener implements Listener {
                                      false);
                 BukkitUtil.broadcast(ChatColor.RED + "Weitere Accounts: " + ChatColor.RESET + accountMessage, "sinkbans.notification", false);
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if(!event.getPlayer().hasPermission("sinkbans.denybanrequest") && !event.getPlayer().hasPermission("sinkbans.acceptbanrequest")) {
+            return;
+        }
+        try {
+            if(database.getAllBanRequestData().size() == 0) {
+                return;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        try {
+            int amount = 0;
+            for(BanRequestData data : database.getAllBanRequestData()) {
+                if(data.state == MySQLDatabase.RequestState.PENDING) {
+                    amount++;
+                }
+            }
+            if(amount == 0) return;
+            event.getPlayer().sendMessage(ChatColor.DARK_RED + "Es sind " + ChatColor.RED + amount + ChatColor.DARK_RED + " Bananfragen offen!");
         } catch (SQLException e) {
             e.printStackTrace();
         }

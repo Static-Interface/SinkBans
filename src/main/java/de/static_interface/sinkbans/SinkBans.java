@@ -21,6 +21,7 @@ import de.static_interface.sinkbans.commands.AllowMultiAccountCommand;
 import de.static_interface.sinkbans.commands.BDebugCommand;
 import de.static_interface.sinkbans.commands.BanCommand;
 import de.static_interface.sinkbans.commands.BanIpCommand;
+import de.static_interface.sinkbans.commands.BanRequestCommand;
 import de.static_interface.sinkbans.commands.IsBannedCommand;
 import de.static_interface.sinkbans.commands.TempBanCommand;
 import de.static_interface.sinkbans.commands.UnbanCommand;
@@ -72,5 +73,6 @@ public class SinkBans extends JavaPlugin {
         SinkLibrary.getInstance().registerCommand("unbanip", new UnbanIpCommand(this, db));
         SinkLibrary.getInstance().registerCommand("allowmultiaccount", new AllowMultiAccountCommand(this, db));
         SinkLibrary.getInstance().registerCommand("bdebug", new BDebugCommand(this, db));
+        SinkLibrary.getInstance().registerCommand("banrequest", new BanRequestCommand(this, db));
     }
 }

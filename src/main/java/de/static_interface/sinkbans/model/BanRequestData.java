@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - 2014 http://static-interface.de and contributors
+ * Copyright (c) 2013 - 2015 http://static-interface.de and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -17,10 +17,24 @@
 
 package de.static_interface.sinkbans.model;
 
-public class BanType {
+import de.static_interface.sinklibrary.user.IngameUser;
 
-    public static final int MANUAL_BAN = 0;
-    public static final int AUTO_MULTI_ACC = 1;
-    public static final int AUTO_IP = 2;
-    public static final int BANREQUEST = 3;
+public class BanRequestData implements Comparable<BanRequestData> {
+    public int id;
+    public String creatorName;
+    public IngameUser creator;
+    public IngameUser target;
+    public String closerName;
+    public IngameUser closer;
+    public String reason;
+    public int state;
+    public long timeCreated;
+    public long timeClosed;
+    public long unbantime;
+
+    @Override
+    public int compareTo(BanRequestData o) {
+        if(o == null) return 1;
+        return Integer.valueOf(id).compareTo(o.id);
+    }
 }

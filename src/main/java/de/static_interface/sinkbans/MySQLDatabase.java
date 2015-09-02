@@ -19,10 +19,16 @@ package de.static_interface.sinkbans;
 
 import de.static_interface.sinkbans.model.Account;
 import de.static_interface.sinkbans.model.BanData;
+import de.static_interface.sinkbans.model.BanRequestData;
 import de.static_interface.sinkbans.model.BanType;
 import de.static_interface.sinklibrary.SinkLibrary;
+import de.static_interface.sinklibrary.api.user.Identifiable;
+import de.static_interface.sinklibrary.api.user.SinkUser;
+import de.static_interface.sinklibrary.user.IngameUser;
 import de.static_interface.sinklibrary.util.BukkitUtil;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -34,12 +40,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 public class MySQLDatabase {
 
     public static final String LOG_TABLE = "iplog";
     public static final String MULTIACCOUNT_TABLE = "multiacc";
     public static final String PLAYER_TABLE = "players";
     public static final String IP_TABLE = "ips";
+    public static final String BANREQUEST_TABLE = "banrequest";
+
     final String driver = "com.mysql.jdbc.Driver";
     private Connection connection;
 
@@ -98,7 +108,21 @@ public class MySQLDatabase {
                 "uuid VARCHAR(36) NOT NULL, " + //16 Bytes * 2 + 4
                 "playername VARCHAR(16) NOT NULL " +
                 ");", MULTIACCOUNT_TABLE);
+        execute(query);
 
+        query = String.format(
+                "CREATE TABLE IF NOT EXISTS %s (" +
+                "id INT NOT NULL AUTO_INCREMENT UNIQUE KEY, " +
+                "creator VARCHAR(16) NOT NULL, " +
+                "creator_uuid VARCHAR(36), " +
+                "reason VARCHAR(255), " +
+                "target_uuid VARCHAR(36) NOT NULL, " +
+                "closer VARCHAR(16), " +
+                "closer_uuid VARCHAR(36)," +
+                "state INT NOT NULL, " +
+                "time_created BIGINT NOT NULL, " +
+                "time_closed BIGINT, " +
+                "unbantime BIGINT NOT NULL);", BANREQUEST_TABLE);
         execute(query);
     }
 
@@ -174,6 +198,51 @@ public class MySQLDatabase {
         return getFromResultSet(result, isIp);
     }
 
+    public List<BanRequestData> getAllBanRequestData() throws SQLException {
+        String query = String.format("SELECT * FROM %s", BANREQUEST_TABLE);
+        ResultSet result = executeQuery(query);
+        return getRequestsFromResultSet(result);
+    }
+
+    public BanRequestData getBanRequest(int id) throws SQLException {
+        String query = String.format("SELECT * FROM %s WHERE id = ?", BANREQUEST_TABLE);
+        ResultSet result = executeQuery(query, id);
+        List<BanRequestData> data = getRequestsFromResultSet(result);
+        if(data.size() == 0) return null;
+        return data.get(0);
+    }
+
+    private List<BanRequestData> getRequestsFromResultSet(ResultSet resultSet) throws SQLException {
+        ArrayList<BanRequestData> tmp = new ArrayList<>();
+        while (resultSet.next()) {
+            try {
+                BanRequestData data = new BanRequestData();
+                data.id = resultSet.getInt("id");
+                data.creatorName = resultSet.getString("creator");
+                String uuid = resultSet.getString("creator_uuid");
+                data.creator = uuid != null ? SinkLibrary.getInstance().getIngameUser(UUID.fromString(uuid)) : null;
+
+                uuid = resultSet.getString("target_uuid");
+                data.target = SinkLibrary.getInstance().getIngameUser(UUID.fromString(uuid));
+
+                data.reason = resultSet.getString("reason");
+
+                data.closerName = resultSet.getString("closer");
+                uuid = resultSet.getString("closer_uuid");
+                data.closer = uuid != null ? SinkLibrary.getInstance().getIngameUser(UUID.fromString(uuid)) : null;
+
+                data.timeCreated = resultSet.getLong("time_created");
+                data.timeClosed = resultSet.getLong("time_closed");
+
+                data.state = resultSet.getInt("state");
+                tmp.add(data);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        Collections.sort(tmp);
+        return tmp;
+    }
 
     public List<BanData> getOldBanData(String playername) throws SQLException {
         String query = String.format("SELECT * FROM %s WHERE playername = ?;",
@@ -209,21 +278,22 @@ public class MySQLDatabase {
         Collections.sort(tmp);
         return tmp;
     }
-
     public void ban(String playername, String reason, String bannedby, UUID uuid, int type) throws SQLException {
+        ban(playername, reason, bannedby, uuid, type, System.currentTimeMillis());
+    }
+    public void ban(String playername, String reason, String bannedby, UUID uuid, int type, long time) throws SQLException {
         if (uuid == null) {
             throw new IllegalStateException("uuid may not be null!");
         }
         if (type == BanType.AUTO_MULTI_ACC) {
             return;
         }
-        long banTimeStamp = System.currentTimeMillis();
         if (reason != null) {
             reason = reason.trim();
             reason = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', reason));
         }
         execute(String.format("INSERT INTO %s VALUES(NULL, ?, ?, ?, '-1', '1', ?, NULL, ?, ?)",
-                              PLAYER_TABLE), playername, reason, banTimeStamp, bannedby, uuid.toString(), type);
+                              PLAYER_TABLE), playername, reason, time, bannedby, uuid.toString(), type);
     }
 
     public void tempBan(String playername, long unbanTimeStamp, String bannedby, UUID uuid, int type) throws SQLException {
@@ -375,5 +445,31 @@ public class MySQLDatabase {
         //}
         //allowed = set.next();
         return allowed;
+    }
+
+    public int createBanRequest(CommandSender sender, IngameUser target, @Nullable String reason, long unbantimestamp) throws SQLException {
+        String creator = sender.getName();
+        String creatorUuid = (sender instanceof Player) ? ((Player)sender).getUniqueId().toString() : null;
+        String targetUuid = target.getUniqueId().toString();
+        long timeCreate = System.currentTimeMillis();
+        execute(String.format("INSERT INTO %s VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", BANREQUEST_TABLE), creator, creatorUuid, reason, targetUuid, null, null,  RequestState.PENDING, timeCreate, -1, unbantimestamp);
+        ResultSet rs =  executeQuery(String.format("SELECT * FROM %s WHERE time_created = ?", BANREQUEST_TABLE), timeCreate);
+        rs.next();
+        return rs.getInt("id");
+    }
+
+    public void closeBanRequest(CommandSender sender, BanRequestData request, int state, long time) throws SQLException {
+        if(state == RequestState.PENDING) throw new IllegalArgumentException("Can't use PENDING state for closing!");
+        SinkUser user = SinkLibrary.getInstance().getUser((Object)sender);
+        String closer = sender.getName();
+        String closer_uuid = user instanceof Identifiable ? ((Identifiable)user).getUniqueId().toString() : null;
+        execute(String.format("UPDATE %s SET closer = ?, closer_uuid = ?, state = ?, time_closed = ? WHERE id = ?", BANREQUEST_TABLE), closer, closer_uuid, state, time, request.id);
+    }
+
+    public static class RequestState {
+        public static final int PENDING = 0;
+        public static final int ACCEPTED = 1;
+        public static final int DENIED = 2;
+        public static final int CANCELLED = 3;
     }
 }
