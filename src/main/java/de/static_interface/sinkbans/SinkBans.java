@@ -45,6 +45,9 @@ public class SinkBans extends JavaPlugin {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+        SinkLibrary.getInstance().registerBanProvider(new SinkBansBanProvider(db));
+
         registerCommands();
         Bukkit.getPluginManager().registerEvents(new EventListener(db), this);
         try {

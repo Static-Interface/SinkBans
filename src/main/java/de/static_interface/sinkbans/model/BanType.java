@@ -23,4 +23,5 @@ public class BanType {
     public static final int AUTO_MULTI_ACC = 1;
     public static final int AUTO_IP = 2;
     public static final int BANREQUEST = 3;
+    public static final int AUTO_BAN_API = 4;
 }

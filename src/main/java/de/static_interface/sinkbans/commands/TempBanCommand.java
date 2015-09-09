@@ -89,7 +89,7 @@ public class TempBanCommand extends SinkCommand {
         }
 
         try {
-            db.unbanTempBan(target.getUniqueId(), target.getName(), unbantimestamp); // Unban all bans done before
+            db.unbanTempBan(target.getUniqueId(), target.getName(), System.currentTimeMillis()); // Unban all bans done before
             db.tempBan(target.getName(), unbantimestamp, sender.getName(), target.getUniqueId(), BanType.MANUAL_BAN);
         } catch (SQLException e) {
             e.printStackTrace();

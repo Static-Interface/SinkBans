@@ -31,6 +31,16 @@ public class BanData implements Comparable<BanData> {
     private String ip;
     private String banner;
     private String uuid;
+    private int id;
+    private String unbanner;
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
+    }
 
 
     public BanData(String playername) {
@@ -113,5 +123,13 @@ public class BanData implements Comparable<BanData> {
             return 1;
         }
         return 0;
+    }
+
+    public String getUnbanner() {
+        return unbanner;
+    }
+
+    public void setUnbanner(String unbanner) {
+        this.unbanner = unbanner;
     }
 }

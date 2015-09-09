@@ -257,6 +257,7 @@ public class MySQLDatabase {
             try {
                 BanData data = new BanData(isIp ? resultSet.getString("ip") : resultSet.getString("playername"));
                 data.setBanner(resultSet.getString("bannedby"));
+                data.setUnbanner(resultSet.getString("unbannedby"));
                 if (!isIp) {
                     data.setReason(resultSet.getString("reason"));
                 }
@@ -269,6 +270,8 @@ public class MySQLDatabase {
                 if (!isIp) {
                     data.setUniqueId(resultSet.getString("uuid"));
                 }
+
+                data.setId(resultSet.getInt("id"));
 
                 tmp.add(data);
             } catch (SQLException e) {
