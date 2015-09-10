@@ -133,6 +133,9 @@ public class SinkBansBanProvider implements BanProvider {
 
     @Override
     public void setUnbanTime(IngameUser user, @Nullable Long unbanTimestamp) {
+        if(unbanTimestamp == null) {
+            unbanTimestamp = -1L;
+        }
         BanData lastBan = getLastBan(user);
         if(lastBan == null) return;
         try {
