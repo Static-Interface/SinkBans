@@ -25,7 +25,6 @@ import de.static_interface.sinklibrary.api.command.SinkCommand;
 import de.static_interface.sinklibrary.api.exception.UserNotFoundException;
 import de.static_interface.sinklibrary.api.user.SinkUser;
 import de.static_interface.sinklibrary.user.IngameUser;
-import de.static_interface.sinklibrary.util.BukkitUtil;
 import de.static_interface.sinklibrary.util.StringUtil;
 import org.apache.commons.cli.ParseException;
 import org.bukkit.ChatColor;
@@ -82,7 +81,7 @@ public class BanRequestCommand  extends SinkCommand {
 
                 String msg =sender.getName() + ChatColor.DARK_RED + " hat einen Bannantrag für " + target.getDisplayName() + ChatColor.DARK_RED + " erstellt." + (reason == null ? "" : " Grund: "  + ChatColor.RED + reason + ".") + ChatColor.GRAY + " ("  + ChatColor.GOLD + "#"  + id + ChatColor.GRAY + ")";
                 String perm = "sinkbans.banrequestnotification";
-                BukkitUtil.broadcast(msg, perm, false);
+                SinkLibrary.getInstance().getMessageStream("sb_ban_requests").sendMessage(null, msg, perm);
                 if(!sender.hasPermission(perm)) {
                     sender.sendMessage(msg);
                 }
@@ -188,7 +187,8 @@ public class BanRequestCommand  extends SinkCommand {
                 SinkUser user = SinkLibrary.getInstance().getUser(sender);
                 String msg = user.getDisplayName() + ChatColor.RED + " hat den Antrag von " + request.creatorName + ChatColor.RED + " für " + request.target.getDisplayName() + ChatColor.RED + " angenommen.";
                 String perm = "sinkbans.banrequestacceptednotification";
-                BukkitUtil.broadcast(msg, perm, false);
+                SinkLibrary.getInstance().getMessageStream("sb_ban_requests").sendMessage(null, msg, perm);
+
                 if(!sender.hasPermission(perm)) {
                     sender.sendMessage(msg);
                 }

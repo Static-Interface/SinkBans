@@ -22,6 +22,7 @@ import de.static_interface.sinkbans.Util;
 import de.static_interface.sinkbans.model.Account;
 import de.static_interface.sinkbans.model.BanData;
 import de.static_interface.sinkbans.model.BanType;
+import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.api.command.SinkCommand;
 import de.static_interface.sinklibrary.api.sender.IrcCommandSender;
 import de.static_interface.sinklibrary.util.BukkitUtil;
@@ -101,7 +102,7 @@ public class BanIpCommand extends SinkCommand {
         }
 
         String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat die folgende IP gesperrt: " + ChatColor.RED + ip;
-        BukkitUtil.broadcast(msg, "sinkbans.notification", false);
+        SinkLibrary.getInstance().getMessageStream("sb_bans_ip").sendMessage(null, msg, "sinkbans.notification");
         if (sender instanceof IrcCommandSender) {
             sender.sendMessage(msg);
         }

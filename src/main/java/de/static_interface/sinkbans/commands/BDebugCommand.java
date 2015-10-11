@@ -42,14 +42,14 @@ public class BDebugCommand extends SinkCommand {
             return false;
         }
         try {
-            sender.sendMessage("Output: " + String.valueOf(handleMultiAccount(args[0])));
+            sender.sendMessage("Output: " + String.valueOf(handleMultiAccount(sender, args[0])));
         } catch (SQLException e) {
             sender.sendMessage(e.toString());
         }
         return true;
     }
 
-    private boolean handleMultiAccount(String ip) throws SQLException {
+    private boolean handleMultiAccount(CommandSender sender, String ip) throws SQLException {
         List<Account> accounts = db.getAccounts(ip);
         if (accounts.size() < 2) {
             return false;

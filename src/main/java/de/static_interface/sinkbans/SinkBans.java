@@ -23,10 +23,12 @@ import de.static_interface.sinkbans.commands.BanCommand;
 import de.static_interface.sinkbans.commands.BanIpCommand;
 import de.static_interface.sinkbans.commands.BanRequestCommand;
 import de.static_interface.sinkbans.commands.IsBannedCommand;
+import de.static_interface.sinkbans.commands.KickCommand;
 import de.static_interface.sinkbans.commands.TempBanCommand;
 import de.static_interface.sinkbans.commands.UnbanCommand;
 import de.static_interface.sinkbans.commands.UnbanIpCommand;
 import de.static_interface.sinklibrary.SinkLibrary;
+import de.static_interface.sinklibrary.stream.BukkitBroadcastStream;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -45,6 +47,12 @@ public class SinkBans extends JavaPlugin {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+        SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_bans"));
+        SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_ip_bans"));
+        SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_temp_bans"));
+        SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_ban_requests"));
+        SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_kicks"));
 
         SinkLibrary.getInstance().registerBanProvider(new SinkBansBanProvider(db));
 
@@ -77,5 +85,6 @@ public class SinkBans extends JavaPlugin {
         SinkLibrary.getInstance().registerCommand("allowmultiaccount", new AllowMultiAccountCommand(this, db));
         SinkLibrary.getInstance().registerCommand("bdebug", new BDebugCommand(this, db));
         SinkLibrary.getInstance().registerCommand("banrequest", new BanRequestCommand(this, db));
+        SinkLibrary.getInstance().registerCommand("kick", new KickCommand(this));
     }
 }

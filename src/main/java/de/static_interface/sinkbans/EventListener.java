@@ -61,7 +61,7 @@ public class EventListener implements Listener {
                 SinkLibrary.getInstance().getCustomLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " is banned, disconnecting");
                 BukkitUtil.broadcast(
                         ChatColor.DARK_RED + "[SinkBans] " + ChatColor.RED + "Warnung! Der gesperrte Spieler " + event.getName() + " versuchte " +
-                        "sich gerade einzuloggen!", "sinkbans.notification:", false);
+                        "sich gerade einzuloggen!", "sinkbans.notification:");
                 return;
             }
         } catch (SQLException e) {
@@ -76,7 +76,7 @@ public class EventListener implements Listener {
                 BukkitUtil.broadcast(
                         ChatColor.DARK_RED + "[SinkBans] " + ChatColor.RED + "Warnung! Der IP gesperrte Spieler " + event.getName() + " mit der IP "
                         + ip + " versuchte " +
-                        "sich gerade einzuloggen!", "sinkbans.notification:", false);
+                        "sich gerade einzuloggen!", "sinkbans.notification:");
                 return;
             }
         } catch (SQLException e) {
@@ -88,9 +88,8 @@ public class EventListener implements Listener {
             String accountMessage = getAccountMessage(accounts, event.getName());
             if (accountMessage != null && handleMultiAccount(ip, event)) {
                 BukkitUtil.broadcast(ChatColor.DARK_RED + "[SinkBans] " + ChatColor.RED + "Warnung! " + event.getName()
-                                     + " ist ein nicht freigeschalteter MultiAccount und versuche sich einzuloggen!", "sinkbans.notification",
-                                     false);
-                BukkitUtil.broadcast(ChatColor.RED + "Weitere Accounts: " + ChatColor.RESET + accountMessage, "sinkbans.notification", false);
+                                     + " ist ein nicht freigeschalteter MultiAccount und versuche sich einzuloggen!", "sinkbans.notification");
+                BukkitUtil.broadcast(ChatColor.RED + "Weitere Accounts: " + ChatColor.RESET + accountMessage, "sinkbans.notification");
             }
         } catch (SQLException e) {
             e.printStackTrace();

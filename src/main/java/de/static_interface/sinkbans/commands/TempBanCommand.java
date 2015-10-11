@@ -96,7 +96,7 @@ public class TempBanCommand extends SinkCommand {
         }
 
         String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " gesperrt: " + reason.trim();
-        BukkitUtil.broadcast(msg, "sinkbans.notification", false);
+        SinkLibrary.getInstance().getMessageStream("sb_temp_bans").sendMessage(null, msg, "sinkbans.notification");
         if (sender instanceof IrcCommandSender) {
             sender.sendMessage(msg);
         }

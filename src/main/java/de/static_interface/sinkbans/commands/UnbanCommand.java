@@ -58,7 +58,7 @@ public class UnbanCommand extends SinkCommand {
             return true;
         }
         String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " entsperrt.";
-        BukkitUtil.broadcast(msg, "sinkbans.notification", false);
+        SinkLibrary.getInstance().getMessageStream("sb_bans").sendMessage(null, msg, "sinkbans.notification");
         if (sender instanceof IrcCommandSender) {
             sender.sendMessage(msg);
         }

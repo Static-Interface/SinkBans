@@ -22,7 +22,7 @@ import de.static_interface.sinkbans.model.BanData;
 import de.static_interface.sinkbans.model.BanRequestData;
 import de.static_interface.sinkbans.model.BanType;
 import de.static_interface.sinklibrary.SinkLibrary;
-import de.static_interface.sinklibrary.api.user.Identifiable;
+import de.static_interface.sinklibrary.api.user.IdentifiableUser;
 import de.static_interface.sinklibrary.api.user.SinkUser;
 import de.static_interface.sinklibrary.user.IngameUser;
 import de.static_interface.sinklibrary.util.BukkitUtil;
@@ -465,7 +465,7 @@ public class MySQLDatabase {
         if(state == RequestState.PENDING) throw new IllegalArgumentException("Can't use PENDING state for closing!");
         SinkUser user = SinkLibrary.getInstance().getUser((Object)sender);
         String closer = sender.getName();
-        String closer_uuid = user instanceof Identifiable ? ((Identifiable)user).getUniqueId().toString() : null;
+        String closer_uuid = user instanceof IdentifiableUser ? ((IdentifiableUser)user).getUniqueId().toString() : null;
         execute(String.format("UPDATE %s SET closer = ?, closer_uuid = ?, state = ?, time_closed = ? WHERE id = ?", BANREQUEST_TABLE), closer, closer_uuid, state, time, request.id);
     }
 
