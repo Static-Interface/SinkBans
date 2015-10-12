@@ -39,6 +39,7 @@ public class KickCommand extends SinkCommand {
     public KickCommand(@Nonnull Plugin plugin) {
         super(plugin);
         getCommandOptions().setMinRequiredArgs(1);
+        getCommandOptions().setIrcOpOnly(true);
     }
 
     @Override
@@ -51,6 +52,11 @@ public class KickCommand extends SinkCommand {
 
         if(!user.isOnline()) {
             throw new UserNotOnlineException(user.getName());
+        }
+
+        if(user.isOp() && !sender.isOp()) {
+            user.sendMessage("Cannot kick this person");
+            return true;
         }
 
         user.getPlayer().kickPlayer(ChatColor.DARK_RED + "Kicked: " + ChatColor.RED + reason);
