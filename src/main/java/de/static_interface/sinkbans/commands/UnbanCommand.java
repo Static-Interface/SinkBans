@@ -17,46 +17,38 @@
 
 package de.static_interface.sinkbans.commands;
 
-import de.static_interface.sinkbans.MySQLDatabase;
-import de.static_interface.sinkbans.Util;
+import de.static_interface.sinkbans.database.DatabaseBanManager;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.api.command.SinkCommand;
+import de.static_interface.sinklibrary.api.command.annotation.DefaultPermission;
+import de.static_interface.sinklibrary.api.command.annotation.Description;
+import de.static_interface.sinklibrary.api.command.annotation.Usage;
 import de.static_interface.sinklibrary.api.sender.IrcCommandSender;
 import de.static_interface.sinklibrary.user.IngameUser;
 import de.static_interface.sinklibrary.util.BukkitUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
-
-import java.sql.SQLException;
-
+@Description("Unban a player")
+@DefaultPermission
+@Usage("<player>")
 public class UnbanCommand extends SinkCommand {
-
-    private MySQLDatabase db;
-
-    public UnbanCommand(Plugin plugin, MySQLDatabase db) {
+    public UnbanCommand(Plugin plugin) {
         super(plugin);
-        this.db = db;
         getCommandOptions().setIrcOpOnly(true);
+        getCommandOptions().setMinRequiredArgs(1);
     }
 
     @Override
     public boolean onExecute(CommandSender sender, String label, String[] args) {
-        if (args.length < 1) {
-            return false;
-        }
-
         String targetName = args[0];
         IngameUser target = SinkLibrary.getInstance().getIngameUser(args[0], false);
         String prefix = BukkitUtil.getSenderName(sender);
 
-        try {
-            db.unban(Util.getUniqueId(target.getName(), db), target.getName(), sender.getName());
-        } catch (SQLException e) {
-            e.printStackTrace();
-            sender.sendMessage(ChatColor.DARK_RED + "Ein Fehler ist aufgetreten!");
-            return true;
-        }
+        DatabaseBanManager.unban(target.getUniqueId(), sender.getName());
+        DatabaseBanManager.unbanTempBan(target.getUniqueId(), sender.getName());
+        target.unban();
+
         String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " entsperrt.";
         SinkLibrary.getInstance().getMessageStream("sb_bans").sendMessage(null, msg, "sinkbans.notification");
         if (sender instanceof IrcCommandSender) {

@@ -17,8 +17,6 @@
 
 package de.static_interface.sinkbans;
 
-import de.static_interface.sinkbans.commands.AllowMultiAccountCommand;
-import de.static_interface.sinkbans.commands.BDebugCommand;
 import de.static_interface.sinkbans.commands.BanCommand;
 import de.static_interface.sinkbans.commands.BanIpCommand;
 import de.static_interface.sinkbans.commands.BanRequestCommand;
@@ -27,9 +25,18 @@ import de.static_interface.sinkbans.commands.KickCommand;
 import de.static_interface.sinkbans.commands.TempBanCommand;
 import de.static_interface.sinkbans.commands.UnbanCommand;
 import de.static_interface.sinkbans.commands.UnbanIpCommand;
+import de.static_interface.sinkbans.database.BanRequestsTable;
+import de.static_interface.sinkbans.database.BanTable;
+import de.static_interface.sinkbans.database.IpBanTable;
+import de.static_interface.sinkbans.database.SessionsTable;
 import de.static_interface.sinklibrary.SinkLibrary;
+import de.static_interface.sinklibrary.database.DatabaseConfiguration;
+import de.static_interface.sinklibrary.database.DatabaseConnectionInfo;
+import de.static_interface.sinklibrary.database.impl.database.MySqlDatabase;
 import de.static_interface.sinklibrary.stream.BukkitBroadcastStream;
+import de.static_interface.sinklibrary.util.Debug;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.SQLException;
@@ -37,32 +44,74 @@ import java.util.logging.Level;
 
 public class SinkBans extends JavaPlugin {
 
-    MySQLDatabase db;
+    private static SinkBans instance;
+    private MySqlDatabase db;
+    private BanTable banTable;
+    private SessionsTable sessionsTable;
+    private BanRequestsTable banRequestsTable;
+    private IpBanTable ipBans;
 
     public void onEnable() {
         if(!checkDependencies()) return;
-
-        try {
-            db = new MySQLDatabase("localhost", "3306", "sinkbans", "root", "");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
+        instance = this;
         SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_bans"));
         SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_ip_bans"));
         SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_temp_bans"));
         SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_ban_requests"));
         SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_kicks"));
 
-        SinkLibrary.getInstance().registerBanProvider(new SinkBansBanProvider(db));
+        SinkLibrary.getInstance().registerBanProvider(new SinkBansBanProvider());
 
         registerCommands();
-        Bukkit.getPluginManager().registerEvents(new EventListener(db), this);
+        Bukkit.getPluginManager().registerEvents(new EventListener(), this);
+        Bukkit.getPluginManager().registerEvents(new SessionsListener(), this);
+        DatabaseConnectionInfo info = new DatabaseConfiguration(getDataFolder(), "sinkbans", "sb");
+        db = new MySqlDatabase(info);
+        banTable = new BanTable(db);
+        sessionsTable = new SessionsTable(db);
+        banRequestsTable = new BanRequestsTable(db);
+        ipBans = new IpBanTable(db);
         try {
-            db.fixOldBans();
+            db.connect();
+            banTable.create();
+            ipBans.create();
+            sessionsTable.create();
+            banRequestsTable.create();
         } catch (SQLException e) {
+            getLogger().severe("FAILED TO CREATE REQUIRED TABLES. SHUTDOWN...");
             e.printStackTrace();
+            Bukkit.shutdown();
         }
+
+        // In case of reload
+        for(Player p : Bukkit.getOnlinePlayers()){
+            SessionManager.startSession(p.getUniqueId(), p.getName(), p.getAddress().getAddress());
+        }
+    }
+
+    public void onDisable() {
+        for(Player p : Bukkit.getOnlinePlayers()){
+            SessionManager.stopSession(p);
+        }
+
+        try {
+            db.close();
+        } catch (SQLException e) {
+            Debug.log(Level.WARNING, "Unexpected exception: ", e);
+        }
+        instance = null;
+    }
+
+    public static SinkBans getInstance() {
+        return instance;
+    }
+
+    public BanTable getBanTable(){
+        return banTable;
+    }
+
+    public SessionsTable getSessionsTable() {
+        return sessionsTable;
     }
 
     private boolean checkDependencies() {
@@ -76,15 +125,22 @@ public class SinkBans extends JavaPlugin {
     }
 
     private void registerCommands() {
-        SinkLibrary.getInstance().registerCommand("ban", new BanCommand(this, db));
-        SinkLibrary.getInstance().registerCommand("banip", new BanIpCommand(this, db));
-        SinkLibrary.getInstance().registerCommand("isbanned", new IsBannedCommand(this, db));
-        SinkLibrary.getInstance().registerCommand("tempban", new TempBanCommand(this, db));
-        SinkLibrary.getInstance().registerCommand("unban", new UnbanCommand(this, db));
-        SinkLibrary.getInstance().registerCommand("unbanip", new UnbanIpCommand(this, db));
-        SinkLibrary.getInstance().registerCommand("allowmultiaccount", new AllowMultiAccountCommand(this, db));
-        SinkLibrary.getInstance().registerCommand("bdebug", new BDebugCommand(this, db));
-        SinkLibrary.getInstance().registerCommand("banrequest", new BanRequestCommand(this, db));
+        SinkLibrary.getInstance().registerCommand("ban", new BanCommand(this));
+        SinkLibrary.getInstance().registerCommand("banip", new BanIpCommand(this));
+        SinkLibrary.getInstance().registerCommand("isbanned", new IsBannedCommand(this));
+        SinkLibrary.getInstance().registerCommand("tempban", new TempBanCommand(this));
+        SinkLibrary.getInstance().registerCommand("unban", new UnbanCommand(this));
+        SinkLibrary.getInstance().registerCommand("unbanip", new UnbanIpCommand(this));
+        //SinkLibrary.getInstance().registerCommand("allowmultiaccount", new AllowMultiAccountCommand(this, db));
+        SinkLibrary.getInstance().registerCommand("banrequest", new BanRequestCommand(this));
         SinkLibrary.getInstance().registerCommand("kick", new KickCommand(this));
+    }
+
+    public BanRequestsTable getBanRequestsTable() {
+        return banRequestsTable;
+    }
+
+    public IpBanTable getIpBanTable() {
+        return ipBans;
     }
 }

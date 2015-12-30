@@ -17,36 +17,33 @@
 
 package de.static_interface.sinkbans.commands;
 
-import de.static_interface.sinkbans.MySQLDatabase;
 import de.static_interface.sinkbans.Util;
+import de.static_interface.sinkbans.database.DatabaseBanManager;
 import de.static_interface.sinkbans.model.Account;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.api.command.SinkCommand;
+import de.static_interface.sinklibrary.api.command.annotation.DefaultPermission;
+import de.static_interface.sinklibrary.api.command.annotation.Description;
+import de.static_interface.sinklibrary.api.command.annotation.Usage;
 import de.static_interface.sinklibrary.api.sender.IrcCommandSender;
 import de.static_interface.sinklibrary.util.BukkitUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
-import java.sql.SQLException;
 import java.util.List;
-
+@Description("Unban an ip with all accounts")
+@DefaultPermission
+@Usage("<ip>")
 public class UnbanIpCommand extends SinkCommand {
-
-    private MySQLDatabase db;
-
-    public UnbanIpCommand(Plugin plugin, MySQLDatabase db) {
+    public UnbanIpCommand(Plugin plugin) {
         super(plugin);
-        this.db = db;
         getCommandOptions().setIrcOpOnly(true);
+        getCommandOptions().setMinRequiredArgs(1);
     }
 
     @Override
     public boolean onExecute(CommandSender sender, String label, String[] args) {
-        if (args.length < 1) {
-            return false;
-        }
-
         String ip = args[0];
 
         if (!Util.isValidIp(ip)) {
@@ -56,27 +53,17 @@ public class UnbanIpCommand extends SinkCommand {
 
         String prefix = BukkitUtil.getSenderName(sender);
 
-        try {
-            db.unbanIp(ip, sender.getName());
-        } catch (SQLException e) {
-            e.printStackTrace();
-            sender.sendMessage(ChatColor.DARK_RED + "Ein Fehler ist aufgetreten!");
-            return true;
-        }
+        DatabaseBanManager.unbanIp(ip, sender.getName());
 
         String unbannedPlayers = null;
-        try {
-            List<Account> accounts = db.getAccounts(ip);
-            for (Account acc : accounts) {
-                db.unban(acc.getUniqueId(), acc.getPlayername(), sender.getName());
-                if (unbannedPlayers == null) {
-                    unbannedPlayers = acc.getPlayername();
-                    continue;
-                }
-                unbannedPlayers += ", " + acc.getPlayername();
+        List<Account> accounts  = DatabaseBanManager.getAccounts(ip);
+        for (Account acc : accounts) {
+            DatabaseBanManager.unban(acc.getUniqueId(), sender.getName());
+            if (unbannedPlayers == null) {
+                unbannedPlayers = acc.getPlayername();
+                continue;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+            unbannedPlayers += ", " + acc.getPlayername();
         }
 
         String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat die IP " + ChatColor.RED + ip + ChatColor.GOLD + " entsperrt.";

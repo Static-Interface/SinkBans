@@ -15,26 +15,41 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkbans.model;
+package de.static_interface.sinkbans.database;
 
-import de.static_interface.sinklibrary.user.IngameUser;
+import de.static_interface.sinklibrary.database.Row;
+import de.static_interface.sinklibrary.database.annotation.Column;
 
-public class BanRequestData implements Comparable<BanRequestData> {
-    public int id;
-    public String creatorName;
-    public IngameUser creator;
-    public IngameUser target;
-    public String closerName;
-    public IngameUser closer;
+import javax.annotation.Nullable;
+
+public class BanRow implements Row {
+    @Column(primaryKey = true, autoIncrement = true)
+    public Integer id;
+
+    @Column
+    public String uuid;
+
+    @Column
+    public String playername;
+
+    @Column
+    public long bantimestamp;
+
+    @Column
+    public long unbantimestamp;
+
+    @Column
+    public boolean isbanned;
+
+    @Column
+    @Nullable
+    public String bannedby;
+
+    @Column
+    @Nullable
+    public String unbannedby;
+
+    @Column
+    @Nullable
     public String reason;
-    public int state;
-    public long timeCreated;
-    public long timeClosed;
-    public long unbantime;
-
-    @Override
-    public int compareTo(BanRequestData o) {
-        if(o == null) return 1;
-        return Integer.valueOf(id).compareTo(o.id);
-    }
 }

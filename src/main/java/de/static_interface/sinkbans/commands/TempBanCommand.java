@@ -18,27 +18,26 @@
 package de.static_interface.sinkbans.commands;
 
 import de.static_interface.sinkbans.DateUtil;
-import de.static_interface.sinkbans.MySQLDatabase;
-import de.static_interface.sinkbans.model.BanType;
+import de.static_interface.sinkbans.database.DatabaseBanManager;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.api.command.SinkCommand;
+import de.static_interface.sinklibrary.api.command.annotation.DefaultPermission;
+import de.static_interface.sinklibrary.api.command.annotation.Description;
+import de.static_interface.sinklibrary.api.command.annotation.Usage;
 import de.static_interface.sinklibrary.api.sender.IrcCommandSender;
 import de.static_interface.sinklibrary.user.IngameUser;
 import de.static_interface.sinklibrary.util.BukkitUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
-
-import java.sql.SQLException;
-
+@Description("Ban a player temporary")
+@DefaultPermission
+@Usage("<player> <timespan> [-r reason]")
 public class TempBanCommand extends SinkCommand {
-
-    private MySQLDatabase db;
-
-    public TempBanCommand(Plugin plugin, MySQLDatabase db) {
+    public TempBanCommand(Plugin plugin) {
         super(plugin);
-        this.db = db;
         getCommandOptions().setIrcOpOnly(true);
+        getCommandOptions().setMinRequiredArgs(1);
     }
 
     public static String getFinalArg(final String[] args, final int start) {
@@ -54,10 +53,6 @@ public class TempBanCommand extends SinkCommand {
 
     @Override
     public boolean onExecute(CommandSender sender, String label, String[] args) {
-        if (args.length < 1) {
-            return false;
-        }
-
         IngameUser target = SinkLibrary.getInstance().getIngameUser(args[0], false);
 
         String targetName = target.isOnline() ? target.getName() : args[0];
@@ -88,12 +83,9 @@ public class TempBanCommand extends SinkCommand {
             target.getPlayer().kickPlayer(reasonPrefix + reason);
         }
 
-        try {
-            db.unbanTempBan(target.getUniqueId(), target.getName(), System.currentTimeMillis()); // Unban all bans done before
-            db.tempBan(target.getName(), unbantimestamp, sender.getName(), target.getUniqueId(), BanType.MANUAL_BAN);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        DatabaseBanManager.unbanTempBan(target.getUniqueId(), sender.getName()); // Unban all bans done before
+        target.unban();
+        target.ban(SinkLibrary.getInstance().getUser(sender), unbantimestamp);
 
         String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " gesperrt: " + reason.trim();
         SinkLibrary.getInstance().getMessageStream("sb_temp_bans").sendMessage(null, msg, "sinkbans.notification");

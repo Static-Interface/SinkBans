@@ -17,9 +17,9 @@
 
 package de.static_interface.sinkbans.commands;
 
-import de.static_interface.sinkbans.MySQLDatabase;
-import de.static_interface.sinkbans.model.BanRequestData;
-import de.static_interface.sinkbans.model.BanType;
+import de.static_interface.sinkbans.database.BanRequest;
+import de.static_interface.sinkbans.database.DatabaseBanManager;
+import de.static_interface.sinkbans.model.RequestState;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.api.command.SinkCommand;
 import de.static_interface.sinklibrary.api.exception.UserNotFoundException;
@@ -32,14 +32,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 public class BanRequestCommand  extends SinkCommand {
-    private MySQLDatabase db;
-    public BanRequestCommand(Plugin plugin, MySQLDatabase db) {
+    public BanRequestCommand(Plugin plugin) {
         super(plugin);
-        this.db = db;
         getCommandOptions().setIrcOpOnly(true);
     }
 
@@ -72,12 +70,7 @@ public class BanRequestCommand  extends SinkCommand {
                     }
                 }
 
-                int id;
-                try {
-                    id = db.createBanRequest(sender, target, reason, -1);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
+                int id = DatabaseBanManager.createBanRequest(sender, target, reason, -1).id;
 
                 String msg =sender.getName() + ChatColor.DARK_RED + " hat einen Bannantrag für " + target.getDisplayName() + ChatColor.DARK_RED + " erstellt." + (reason == null ? "" : " Grund: "  + ChatColor.RED + reason + ".") + ChatColor.GRAY + " ("  + ChatColor.GOLD + "#"  + id + ChatColor.GRAY + ")";
                 String perm = "sinkbans.banrequestnotification";
@@ -90,18 +83,14 @@ public class BanRequestCommand  extends SinkCommand {
 
             case "list": {
                 sender.sendMessage(ChatColor.GOLD + "--- Ban Requests ---");
-                List<BanRequestData> banRequests;
-                try {
-                    banRequests = db.getAllBanRequestData();
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
+                List<BanRequest> banRequests = DatabaseBanManager.getAllBanRequests();
 
                 int i = 0;
-                for(BanRequestData request : banRequests) {
-                    if(request.state != MySQLDatabase.RequestState.PENDING) continue;
+                for(BanRequest request : banRequests) {
+                    if(request.state != RequestState.PENDING) continue;
                     String reason = request.reason != null ? request.reason : "Du wurdest permanent gesperrt";
-                    sender.sendMessage(ChatColor.GOLD + "#" + request.id + " " + request.creatorName + ChatColor.GRAY + " -> " + request.target.getDisplayName() + ChatColor.GRAY + ": " + ChatColor.RED + reason);
+                    IngameUser target = SinkLibrary.getInstance().getIngameUser(UUID.fromString(request.target_uuid));
+                    sender.sendMessage(ChatColor.GOLD + "#" + request.id + " " + request.creator + ChatColor.GRAY + " -> " + target.getDisplayName() + ChatColor.GRAY + ": " + ChatColor.RED + reason);
                     i++;
                 }
 
@@ -117,13 +106,8 @@ public class BanRequestCommand  extends SinkCommand {
                     sender.sendMessage(ChatColor.RED +"Usage: /banrequest accept <id>");
                     return true;
                 }
-                int id = Integer.valueOf(args[1]);
-                BanRequestData request;
-                try {
-                    request = db.getBanRequest(id);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
+                int id = getArg(args, 1, int.class);
+                BanRequest request = DatabaseBanManager.getBanRequest(id);
 
                 if(request == null) {
                     sender.sendMessage(ChatColor.RED + "Banrequest " + ChatColor.GOLD + "#" + id + " " + ChatColor.RED + " not found!");
@@ -132,9 +116,9 @@ public class BanRequestCommand  extends SinkCommand {
 
                 if(!sender.hasPermission("sinkbans.closeothers")) {
                     if ((request.creator != null && sender instanceof Player && !((Player) sender).getUniqueId()
-                            .equals(request.creator.getUniqueId()))
+                            .equals(UUID.fromString(request.creator_uuid)))
                         || (request.creator != null && !(sender instanceof Player)) || (request.creator == null && sender instanceof Player)
-                        || (request.creator == null && !(sender instanceof Player)) && !request.creator.getDisplayName().equals(ChatColor.stripColor(
+                        || (request.creator == null && !(sender instanceof Player)) && !request.creator.equals(ChatColor.stripColor(
                             sender.getName()))) {
                         sender.sendMessage(ChatColor.RED + "This is not your banrequest");
                         return true;
@@ -142,11 +126,7 @@ public class BanRequestCommand  extends SinkCommand {
                 }
 
                 long time = System.currentTimeMillis();
-                try {
-                    db.closeBanRequest(sender, request, MySQLDatabase.RequestState.CANCELLED, time);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
+                DatabaseBanManager.closeBanRequest(sender, request, RequestState.CANCELLED, time);
                 sender.sendMessage(ChatColor.DARK_GREEN + "Dein Antrag " + ChatColor.GOLD + "#" + id + " " + ChatColor.DARK_GREEN + " wurde abgebrochen!");
                 break;
             }
@@ -161,12 +141,7 @@ public class BanRequestCommand  extends SinkCommand {
                     return true;
                 }
                 int id = Integer.valueOf(args[1]);
-                BanRequestData request;
-                try {
-                    request = db.getBanRequest(id);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
+                BanRequest request = DatabaseBanManager.getBanRequest(id);
 
                 if(request == null) {
                     sender.sendMessage(ChatColor.RED + "Banrequest " + ChatColor.GOLD + "#" + id + " " + ChatColor.RED + " not found!");
@@ -174,26 +149,25 @@ public class BanRequestCommand  extends SinkCommand {
                 }
 
                 long time = System.currentTimeMillis();
-                try {
-                    db.closeBanRequest(sender, request, MySQLDatabase.RequestState.ACCEPTED, time);
-                    db.ban(request.target.getDisplayName(), request.reason, sender.getName(), request.target.getUniqueId(), BanType.BANREQUEST, time);
-                    if(request.target.isOnline()) {
-                        request.target.getPlayer().kickPlayer(ChatColor.DARK_RED + "Gesperrt: " + ChatColor.RED + request.reason);
-                    }
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
+                IngameUser target = SinkLibrary.getInstance().getIngameUser(UUID.fromString(request.target_uuid));
+                DatabaseBanManager.closeBanRequest(sender, request, RequestState.ACCEPTED, time);
+                target.ban(SinkLibrary.getInstance().getUser(sender), request.reason);
+                if(target.isOnline()) {
+                    target.getPlayer().kickPlayer(ChatColor.DARK_RED + "Gesperrt: " + ChatColor.RED + request.reason);
                 }
 
                 SinkUser user = SinkLibrary.getInstance().getUser(sender);
-                String msg = user.getDisplayName() + ChatColor.RED + " hat den Antrag von " + request.creatorName + ChatColor.RED + " für " + request.target.getDisplayName() + ChatColor.RED + " angenommen.";
+                String msg = user.getDisplayName() + ChatColor.RED + " hat den Antrag von " + request.creator + ChatColor.RED + " für " + target.getDisplayName() + ChatColor.RED + " angenommen.";
                 String perm = "sinkbans.banrequestacceptednotification";
                 SinkLibrary.getInstance().getMessageStream("sb_ban_requests").sendMessage(null, msg, perm);
 
                 if(!sender.hasPermission(perm)) {
                     sender.sendMessage(msg);
                 }
-                if(request.creator != null && request.creator.isOnline()) {
-                    request.creator.sendMessage(ChatColor.DARK_GREEN + "Dein Antrag "  + ChatColor.GOLD + "#" + id + " " + ChatColor.DARK_GREEN + " wurde angenommen!");
+
+                IngameUser creator = SinkLibrary.getInstance().getIngameUser(UUID.fromString(request.creator));
+                if(request.creator != null && creator.isOnline()) {
+                    creator.sendMessage(ChatColor.DARK_GREEN + "Dein Antrag "  + ChatColor.GOLD + "#" + id + " " + ChatColor.DARK_GREEN + " wurde angenommen!");
                 }
                 break;
             }
@@ -208,12 +182,7 @@ public class BanRequestCommand  extends SinkCommand {
                     return true;
                 }
                 int id = Integer.valueOf(args[1]);
-                BanRequestData request;
-                try {
-                    request = db.getBanRequest(id);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
+                BanRequest request = DatabaseBanManager.getBanRequest(id);
 
                 if(request == null) {
                     sender.sendMessage(ChatColor.RED + "Banrequest " + ChatColor.GOLD + "#" + id + " " + ChatColor.RED + " not found!");
@@ -221,15 +190,12 @@ public class BanRequestCommand  extends SinkCommand {
                 }
 
                 long time = System.currentTimeMillis();
-                try {
-                    db.closeBanRequest(sender, request, MySQLDatabase.RequestState.DENIED, time);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
+                DatabaseBanManager.closeBanRequest(sender, request, RequestState.DENIED, time);
 
+                IngameUser creator = SinkLibrary.getInstance().getIngameUser(UUID.fromString(request.creator));
                 sender.sendMessage(ChatColor.DARK_RED + "Du hast den Antrag "  + ChatColor.GOLD + "#" + id + " " + ChatColor.DARK_RED+ " abgelehnt!");
-                if(request.creator != null && request.creator.isOnline()) {
-                    request.creator.sendMessage(ChatColor.DARK_RED + "Dein Antrag "  + ChatColor.GOLD + "#" + id + " " + ChatColor.DARK_RED+ " wurde abgelehnt!");
+                if(request.creator != null && creator.isOnline()) {
+                    creator.sendMessage(ChatColor.DARK_RED + "Dein Antrag "  + ChatColor.GOLD + "#" + id + " " + ChatColor.DARK_RED+ " wurde abgelehnt!");
                 }
                 break;
             }

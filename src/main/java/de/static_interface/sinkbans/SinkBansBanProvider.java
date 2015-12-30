@@ -16,26 +16,21 @@
  */
 
 package de.static_interface.sinkbans;
+import static de.static_interface.sinklibrary.database.query.Query.eq;
+import static de.static_interface.sinklibrary.database.query.Query.from;
 
-import de.static_interface.sinkbans.model.BanData;
-import de.static_interface.sinkbans.model.BanType;
+import de.static_interface.sinkbans.database.BanRow;
+import de.static_interface.sinkbans.database.DatabaseBanManager;
 import de.static_interface.sinklibrary.api.provider.BanProvider;
 import de.static_interface.sinklibrary.api.user.SinkUser;
 import de.static_interface.sinklibrary.user.IngameUser;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
 
 public class SinkBansBanProvider implements BanProvider {
-
-    private MySQLDatabase db;
-    public SinkBansBanProvider(MySQLDatabase db) {
-        this.db = db;
-    }
-
     @Override
     public void ban(IngameUser user) {
         ban(user, null, null, null);
@@ -74,22 +69,16 @@ public class SinkBansBanProvider implements BanProvider {
 
     @Override
     public void ban(IngameUser user, @Nullable SinkUser banner, @Nullable String reason, @Nullable Long timeOut) {
-        int type = BanType.AUTO_BAN_API;
         String bannerName = banner == null ? null : banner.getName();
 
-        if(banner != null) type = BanType.MANUAL_BAN;
-
-        try {
-            if(timeOut != null) {
-                db.unbanTempBan(Util.getUniqueId(user.getName(), db), user.getName(), System.currentTimeMillis()); // Unban all bans done before
-                db.tempBan(user.getName(), timeOut, bannerName, Util.getUniqueId(user.getName(), db), type);
-            }
-             else {
-                db.unban(Util.getUniqueId(user.getName(), db), user.getName(), bannerName); // Unban all bans done before
-                db.ban(user.getName(), reason, bannerName, Util.getUniqueId(user.getName(), db), type);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        if(timeOut != null) {
+            DatabaseBanManager.unbanTempBan(user.getUniqueId(), bannerName); // Unban all bans done before
+            DatabaseBanManager.tempBan(user, timeOut, bannerName);
+        }
+         else {
+            DatabaseBanManager.unban(user.getUniqueId(), bannerName); // Unban all bans done before
+            DatabaseBanManager.unbanTempBan(user.getUniqueId(), bannerName);
+            DatabaseBanManager.ban(user, reason, bannerName);
         }
 
         setBanner(user, banner);
@@ -104,33 +93,26 @@ public class SinkBansBanProvider implements BanProvider {
 
     @Override
     public void unban(IngameUser user, SinkUser unbanner) {
-        try {
-            if(getTimeOut(user) != null) {
-                db.unbanTempBan(Util.getUniqueId(user.getName(), db), user.getName(), System.currentTimeMillis());
-            } else {
-                db.unban(Util.getUniqueId(user.getName(), db), user.getName(), unbanner.getDisplayName()); // Unban all bans done before
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        String unbannerName = unbanner == null ? null : unbanner.getName();
+        if(getTimeOut(user) != null) {
+            DatabaseBanManager.unbanTempBan(user.getUniqueId(), unbannerName);
+        } else {
+            DatabaseBanManager.unban(user.getUniqueId(), unbannerName);
         }
         setUnbanner(user, unbanner);
     }
 
     @Override
     public boolean isBanned(IngameUser user) {
-        try {
-            List<BanData> datas = db.getBanData(Util.getUniqueId(user.getName(), db).toString(), false);
-            if(datas == null) return false;
-            for (BanData data : datas) {
-                if(data.isBanned()) {
-                    return true;
-                }
+        List<BanRow> datas = DatabaseBanManager.getUserBans(user);
+        if(datas == null) return false;
+        for (BanRow data : datas) {
+            if(data.isbanned) {
+                return true;
             }
-
-            return false;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
+
+        return false;
     }
 
     @Override
@@ -138,65 +120,61 @@ public class SinkBansBanProvider implements BanProvider {
         if(unbanTimestamp == null) {
             unbanTimestamp = -1L;
         }
-        BanData lastBan = getLastBan(user);
+        BanRow lastBan = getLastBan(user);
         if(lastBan == null) return;
-        try {
-            db.execute("UPDATE " + MySQLDatabase.PLAYER_TABLE + " SET `unbantimestamp` = ? WHERE `id` = ?", unbanTimestamp, lastBan.getId());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        from(SinkBans.getInstance().getBanTable())
+                .update()
+                .set("unbantimestamp", "?")
+                .where("id", eq("?"))
+                .execute(unbanTimestamp, lastBan.id);
     }
 
     @Nullable
-    private BanData getLastBan(IngameUser user){
-        try {
-            List<BanData> banData = db.getBanData(user.getUniqueId().toString(), false);
-            BanData lastBan = null;
-            for(BanData data : banData) {
-                if((lastBan == null || data.getId() > lastBan.getId()) && data.isBanned()) {
-                    lastBan = data;
-                }
+    private BanRow getLastBan(IngameUser user){
+        List<BanRow> banData = DatabaseBanManager.getUserBans(user);
+        BanRow lastBan = null;
+        for(BanRow data : banData) {
+            if((lastBan == null || data.id  > lastBan.id) && data.isbanned) {
+                lastBan = data;
             }
-
-            return lastBan;
-        } catch (SQLException e) {
-            throw new RuntimeException();
         }
+
+        return lastBan;
     }
 
     @Override
     public void setReason(IngameUser user, String reason) {
-        BanData lastBan = getLastBan(user);
+        BanRow lastBan = getLastBan(user);
         if(lastBan == null) return;
-        try {
-            db.execute("UPDATE " + MySQLDatabase.PLAYER_TABLE + " SET `reason` = ? WHERE `id` = ?", reason, lastBan.getId());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        from(SinkBans.getInstance().getBanTable())
+                .update()
+                .set("reason", "?")
+                .where("id", eq("?"))
+                .execute(reason, lastBan.id);
     }
 
     @Nullable
     @Override
     public String getReason(IngameUser user) {
-        BanData lastBan = getLastBan(user);
+        BanRow lastBan = getLastBan(user);
         if(lastBan == null) return null;
-        return lastBan.getReason();
+        return lastBan.reason;
     }
 
     @Nullable
     @Override
     public Long getBanTime(IngameUser user) {
-        BanData lastBan = getLastBan(user);
+        BanRow lastBan = getLastBan(user);
         if(lastBan == null) return null;
-        return lastBan.getBanTimeStamp();
+        return lastBan.bantimestamp;
     }
 
     @Nullable
     @Override
     public Long getUnbanTime(IngameUser user) {
-        BanData lastBan = getLastBan(user);
+        BanRow lastBan = getLastBan(user);
         if(lastBan == null) return null;
-        return lastBan.getUnbanTimeStamp();
+        return lastBan.unbantimestamp;
     }
 
     @Override
@@ -212,9 +190,9 @@ public class SinkBansBanProvider implements BanProvider {
     @Nullable
     @Override
     public String getBannerDisplayName(IngameUser user) {
-        BanData lastBan = getLastBan(user);
+        BanRow lastBan = getLastBan(user);
         if(lastBan == null) return null;
-        return lastBan.getBanner();
+        return lastBan.bannedby;
     }
 
     @Nullable
@@ -226,9 +204,9 @@ public class SinkBansBanProvider implements BanProvider {
     @Nullable
     @Override
     public String getUnbannerDisplayName(IngameUser user) {
-        BanData lastBan = getLastBan(user);
+        BanRow lastBan = getLastBan(user);
         if(lastBan == null) return null;
-        return lastBan.getUnbanner();
+        return lastBan.unbannedby;
     }
 
     @Nullable
@@ -239,23 +217,23 @@ public class SinkBansBanProvider implements BanProvider {
 
     @Override
     public void setBanner(IngameUser user, SinkUser banner) {
-        BanData lastBan = getLastBan(user);
+        BanRow lastBan = getLastBan(user);
         if(lastBan == null) return;
-        try {
-            db.execute("UPDATE " + MySQLDatabase.PLAYER_TABLE + " SET `bannedby` = ? WHERE `id` = ?", banner == null ? null : banner.getName(), lastBan.getId());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        from(SinkBans.getInstance().getBanTable())
+                .update()
+                .set("bannedby", "?")
+                .where("id", eq("?"))
+                .execute(banner.getName(), lastBan.id);
     }
 
     @Override
     public void setUnbanner(IngameUser user, SinkUser unbanner) {
-        BanData lastBan = getLastBan(user);
+        BanRow lastBan = getLastBan(user);
         if(lastBan == null) return;
-        try {
-            db.execute("UPDATE " + MySQLDatabase.PLAYER_TABLE + " SET `unbannedby` = ? WHERE `id` = ?", unbanner.getDisplayName(), lastBan.getId());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        from(SinkBans.getInstance().getBanTable())
+                .update()
+                .set("unbannedby", "?")
+                .where("id", eq("?"))
+                .execute(unbanner.getName(), lastBan.id);
     }
 }

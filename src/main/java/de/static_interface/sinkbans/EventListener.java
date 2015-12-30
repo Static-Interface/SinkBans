@@ -17,11 +17,13 @@
 
 package de.static_interface.sinkbans;
 
+import de.static_interface.sinkbans.database.BanRequest;
+import de.static_interface.sinkbans.database.DatabaseBanManager;
+import de.static_interface.sinkbans.database.IpBanRow;
 import de.static_interface.sinkbans.model.Account;
-import de.static_interface.sinkbans.model.BanData;
-import de.static_interface.sinkbans.model.BanRequestData;
-import de.static_interface.sinkbans.model.BanType;
+import de.static_interface.sinkbans.model.RequestState;
 import de.static_interface.sinklibrary.SinkLibrary;
+import de.static_interface.sinklibrary.user.IngameUser;
 import de.static_interface.sinklibrary.util.BukkitUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
@@ -30,61 +32,29 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Level;
 
 import javax.annotation.Nullable;
 
 public class EventListener implements Listener {
-
-    private MySQLDatabase database;
-
-    public EventListener(MySQLDatabase database) {
-        this.database = database;
-    }
-
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onAsyncPlayerPreLogin(AsyncPlayerPreLoginEvent event) {
-        List<BanData> data;
         String ip = Util.getIp(event.getAddress());
-        try {
-            database.logIp(event.getUniqueId(), event.getName(), ip);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
 
-        try {
-            List<BanData> oldData = database.getOldBanData(event.getName());
-            data = database.getBanData(event.getUniqueId().toString(), false);
-            if (handleData(data, event, false) || handleData(oldData, event, false)) {
-                SinkLibrary.getInstance().getCustomLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " is banned, disconnecting");
-                BukkitUtil.broadcast(
-                        ChatColor.DARK_RED + "[SinkBans] " + ChatColor.RED + "Warnung! Der gesperrte Spieler " + event.getName() + " versuchte " +
-                        "sich gerade einzuloggen!", "sinkbans.notification:");
-                return;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        List<IpBanRow> data = DatabaseBanManager.getUserBans(ip);
+        if (handleIpBan(data, event, true)) {
+            SinkBans.getInstance().getLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " is IP banned, disconnecting");
+            BukkitUtil.broadcast(
+                    ChatColor.DARK_RED + "[SinkBans] " + ChatColor.RED + "Warnung! Der IP gesperrte Spieler " + event.getName() + " mit der IP "
+                    + ip + " versuchte " +
+                    "sich gerade einzuloggen!", "sinkbans.notification:");
             return;
         }
 
+        /*
         try {
-            data = database.getBanData(ip, true);
-            if (handleData(data, event, true)) {
-                SinkLibrary.getInstance().getCustomLogger().log(Level.INFO, "[Ban] Player " + event.getName() + " is IP banned, disconnecting");
-                BukkitUtil.broadcast(
-                        ChatColor.DARK_RED + "[SinkBans] " + ChatColor.RED + "Warnung! Der IP gesperrte Spieler " + event.getName() + " mit der IP "
-                        + ip + " versuchte " +
-                        "sich gerade einzuloggen!", "sinkbans.notification:");
-                return;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            List<Account> accounts = database.getAccounts(ip);
+            List<Account> accounts = DbUtil.getAccounts(ip);
             String accountMessage = getAccountMessage(accounts, event.getName());
             if (accountMessage != null && handleMultiAccount(ip, event)) {
                 BukkitUtil.broadcast(ChatColor.DARK_RED + "[SinkBans] " + ChatColor.RED + "Warnung! " + event.getName()
@@ -94,6 +64,7 @@ public class EventListener implements Listener {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        */
     }
 
     @EventHandler
@@ -101,29 +72,21 @@ public class EventListener implements Listener {
         if(!event.getPlayer().hasPermission("sinkbans.denybanrequest") && !event.getPlayer().hasPermission("sinkbans.acceptbanrequest")) {
             return;
         }
-        try {
-            if(database.getAllBanRequestData().size() == 0) {
-                return;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if(DatabaseBanManager.getAllBanRequests().size() == 0) {
             return;
         }
 
-        try {
-            int amount = 0;
-            for(BanRequestData data : database.getAllBanRequestData()) {
-                if(data.state == MySQLDatabase.RequestState.PENDING) {
-                    amount++;
-                }
+        int amount = 0;
+        for(BanRequest data : DatabaseBanManager.getAllBanRequests()) {
+            if(data.state == RequestState.PENDING) {
+                amount++;
             }
-            if(amount == 0) return;
-            event.getPlayer().sendMessage(ChatColor.DARK_RED + "Es sind " + ChatColor.RED + amount + ChatColor.DARK_RED + " Bananfragen offen!");
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
+        if(amount == 0) return;
+        event.getPlayer().sendMessage(ChatColor.DARK_RED + "Es sind " + ChatColor.RED + amount + ChatColor.DARK_RED + " Bananfragen offen!");
     }
 
+    /*
     private boolean handleMultiAccount(String ip, AsyncPlayerPreLoginEvent event) throws SQLException {
         List<Account> accounts = database.getAccounts(ip);
         if (accounts.size() < 2) {
@@ -153,6 +116,7 @@ public class EventListener implements Listener {
                        "Unangemeldeter MultiAccount. Bitte melde dich bei einem Minister oder Administrator." + (accountMessage != null ? " (Accounts: " + accountMessage  + ")" : ""));
         return true;
     }
+    */
 
     private String getAccountMessage(List<Account> accounts, @Nullable String ignoredName) {
         String accountMessage = null;
@@ -169,64 +133,32 @@ public class EventListener implements Listener {
         return accountMessage;
     }
 
-    private boolean isAllowed(Account account, String ip) {
-        try {
-            if(database.countIps(ip, 14 * 24) > 2) {
-                return database.isAllowedMultiAccount(account);
-            }
-            else if(database.countIps(ip, 14 * 24) > 1 && database.getFirstJoin(account, ip) >= System.currentTimeMillis() - 2 * 60 * 60 * 1000 && database.getFirstJoin(account, ip) <= System.currentTimeMillis() - 24 * 60 * 60 * 1000) {
-                return database.isAllowedMultiAccount(account);
-            }
-            return true;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean handleData(List<BanData> datas, AsyncPlayerPreLoginEvent event, boolean isIp) {
+    public boolean handleIpBan(List<IpBanRow> datas, AsyncPlayerPreLoginEvent event, boolean isIp) {
         if (datas == null) {
             return false;
         }
-        for (BanData data : datas) {
+        for (IpBanRow data : datas) {
             if(data == null) continue;
-            if ((!isIp && data.getUniqueId() == null) || (data.getUniqueId() == null || data.getUniqueId().isEmpty())) {
-                try {
-                    database.fixBan(data, event.getUniqueId());
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (!data.isBanned()) {
+            if (!data.isbanned) {
                 continue;
             }
-            if (data.isPermBan()) {
-                String reason = data.getReason();
-                if (reason == null || reason.isEmpty()) {
-                    reason = "Du wurdest permanent gesperrt.";
-                }
-                event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_BANNED, ChatColor.DARK_RED + "Gesperrt: " + ChatColor.RESET + reason);
-            } else if (data.isTempBanned()) {
-                if ((data.getUnbanTimeStamp() - System.currentTimeMillis()) <= 0) {
-                    try {
-                        database.unbanTempBan(event.getUniqueId(), event.getName(), data.getUnbanTimeStamp());
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
+            if (data.unbantimestamp < 0) {
+                event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_BANNED, ChatColor.DARK_RED + "Gesperrt: " + ChatColor.RESET + "Deine IP ist gesperrt");
+            } else {
+                if ((data.unbantimestamp - System.currentTimeMillis()) <= 0) {
+                    DatabaseBanManager.unbanTempBan(event.getUniqueId(), null, data.unbantimestamp);
                 } else {
                     String
                             reason =
                             ChatColor.DARK_RED + "Gesperrt: " + ChatColor.RED + "Zeitlich gesperrt vom Server fuer " + DateUtil
-                                    .formatDateDiff(data.getUnbanTimeStamp());
+                                    .formatDateDiff(data.unbantimestamp);
                     event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_BANNED, ChatColor.DARK_RED + "Gesperrt: " + ChatColor.RESET + reason);
                 }
             }
-            if (isIp && !Util.isBanned(new Account(event.getUniqueId(), event.getName()), database)) {
-                try {
-                    database.ban(event.getName(), null, data.getBanner(), event.getUniqueId(), BanType.AUTO_IP);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+
+            IngameUser user = SinkLibrary.getInstance().getIngameUser(event.getUniqueId());
+            if (isIp && !user.isBanned()) {
+                user.ban("Deien IP wurde gesperrt");
             }
             return true;
         }

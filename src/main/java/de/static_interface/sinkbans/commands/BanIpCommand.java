@@ -17,31 +17,34 @@
 
 package de.static_interface.sinkbans.commands;
 
-import de.static_interface.sinkbans.MySQLDatabase;
+import de.static_interface.sinkbans.database.DatabaseBanManager;
 import de.static_interface.sinkbans.Util;
+import de.static_interface.sinkbans.database.BanRow;
 import de.static_interface.sinkbans.model.Account;
-import de.static_interface.sinkbans.model.BanData;
-import de.static_interface.sinkbans.model.BanType;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.api.command.SinkCommand;
+import de.static_interface.sinklibrary.api.command.annotation.DefaultPermission;
+import de.static_interface.sinklibrary.api.command.annotation.Description;
+import de.static_interface.sinklibrary.api.command.annotation.Usage;
 import de.static_interface.sinklibrary.api.sender.IrcCommandSender;
+import de.static_interface.sinklibrary.user.IngameUser;
 import de.static_interface.sinklibrary.util.BukkitUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import java.sql.SQLException;
 import java.util.List;
 
+@Description("Ban an ip with all accounts")
+@DefaultPermission
+@Usage("<ip> [reason]")
 public class BanIpCommand extends SinkCommand {
-
-    private MySQLDatabase db;
-
-    public BanIpCommand(Plugin plugin, MySQLDatabase db) {
+    public BanIpCommand(Plugin plugin) {
         super(plugin);
-        this.db = db;
         getCommandOptions().setIrcOpOnly(true);
+        getCommandOptions().setMinRequiredArgs(1);
     }
 
     @Override
@@ -60,15 +63,9 @@ public class BanIpCommand extends SinkCommand {
             return true;
         }
 
-        try {
-            db.banIp(ip, sender.getName());
-        } catch (SQLException e) {
-            e.printStackTrace();
-            sender.sendMessage(ChatColor.DARK_RED + "Ein Fehler ist aufgetreten!");
-            return true;
-        }
+        DatabaseBanManager.banIp(ip, sender.getName());
 
-        for (Player p : BukkitUtil.getOnlinePlayers()) {
+        for (Player p : Bukkit.getOnlinePlayers()) {
             String playerIp = Util.getIp(p.getAddress().getAddress());
             if (ip.equals(playerIp)) {
                 p.kickPlayer(ChatColor.DARK_RED + "Gesperrt: " + ChatColor.RED + "Deine IP wurde gesperrt!");
@@ -77,28 +74,27 @@ public class BanIpCommand extends SinkCommand {
 
         String bannedPlayers = null;
 
-        try {
-            List<Account> accounts = db.getAccounts(ip);
-            for (Account acc : accounts) {
-                boolean cancelBan = false;
-                for(BanData data : db.getBanData(acc.getUniqueId().toString(), false)) {
-                    if(data.isBanned()) {
-                        cancelBan = true;
-                        break;
-                    }
+        List<Account> accounts = DatabaseBanManager.getAccounts(ip);
+        for (Account acc : accounts) {
+            IngameUser user = SinkLibrary.getInstance().getIngameUser(acc.getUniqueId());
+
+            boolean cancelBan = false;
+            for(BanRow row : DatabaseBanManager.getUserBans(user)) {
+                if(row.isbanned) {
+                    cancelBan = true;
+                    break;
                 }
-                if(cancelBan) {
-                    continue;
-                }
-                db.ban(acc.getPlayername(), null, sender.getName(), acc.getUniqueId(), BanType.AUTO_IP);
-                if (bannedPlayers == null) {
-                    bannedPlayers = acc.getPlayername();
-                    continue;
-                }
-                bannedPlayers += ", " + acc.getPlayername();
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+            if(cancelBan) {
+                continue;
+            }
+
+            user.ban(SinkLibrary.getInstance().getConsoleUser(), "Automatischer Bann durch IP Bann");
+            if (bannedPlayers == null) {
+                bannedPlayers = acc.getPlayername();
+                continue;
+            }
+            bannedPlayers += ", " + acc.getPlayername();
         }
 
         String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat die folgende IP gesperrt: " + ChatColor.RED + ip;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - 2014 http://static-interface.de and contributors
+ * Copyright (c) 2013 - 2015 http://static-interface.de and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -15,21 +15,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkbans;
+package de.static_interface.sinkbans.database;
 
-import java.net.InetAddress;
-import java.util.regex.Pattern;
+import de.static_interface.sinklibrary.database.Row;
+import de.static_interface.sinklibrary.database.annotation.Column;
 
-public class Util {
+public class IpBanRow implements Row {
+    @Column(primaryKey = true, autoIncrement = true)
+    public int Integer;
 
-    public static final String IP_PATTERN = "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}";
+    @Column
+    public String ip;
 
-    public static String getIp(InetAddress address) {
-        return address.getHostAddress();
-    }
+    @Column
+    public long bantimestamp;
 
-    public static boolean isValidIp(String ip) {
-        return Pattern.matches(IP_PATTERN, ip);
-    }
+    @Column
+    public long unbantimestamp;
 
+    @Column
+    public boolean isbanned;
+
+    @Column
+    public String bannedby;
+
+    @Column
+    public String unbannedby;
 }

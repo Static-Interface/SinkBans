@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - 2014 http://static-interface.de and contributors
+ * Copyright (c) 2013 - 2015 http://static-interface.de and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -15,13 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkbans.model;
+package de.static_interface.sinkbans.database;
 
-public class BanType {
+import de.static_interface.sinklibrary.database.AbstractTable;
+import de.static_interface.sinklibrary.database.Database;
 
-    public static final int MANUAL_BAN = 0;
-    public static final int AUTO_MULTI_ACC = 1;
-    public static final int AUTO_IP = 2;
-    public static final int BANREQUEST = 3;
-    public static final int AUTO_BAN_API = 4;
+public class BanTable extends AbstractTable<BanRow> {
+    public BanTable(Database db) {
+        super("bans", db);
+    }
 }

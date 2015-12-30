@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - 2014 http://static-interface.de and contributors
+ * Copyright (c) 2013 - 2015 http://static-interface.de and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -15,21 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkbans;
+package de.static_interface.sinkbans.database;
 
-import java.net.InetAddress;
-import java.util.regex.Pattern;
+import de.static_interface.sinklibrary.database.AbstractTable;
+import de.static_interface.sinklibrary.database.Database;
 
-public class Util {
-
-    public static final String IP_PATTERN = "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}";
-
-    public static String getIp(InetAddress address) {
-        return address.getHostAddress();
+public class BanRequestsTable extends AbstractTable<BanRequest> {
+    public BanRequestsTable(Database db) {
+        super("banrequests", db);
     }
-
-    public static boolean isValidIp(String ip) {
-        return Pattern.matches(IP_PATTERN, ip);
-    }
-
 }
