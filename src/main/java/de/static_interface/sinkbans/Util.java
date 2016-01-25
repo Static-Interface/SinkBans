@@ -17,19 +17,52 @@
 
 package de.static_interface.sinkbans;
 
+import de.static_interface.sinklibrary.util.Debug;
+import org.bukkit.Bukkit;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.util.regex.Pattern;
 
 public class Util {
-
     public static final String IP_PATTERN = "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}";
+    public static final String IP_MASK_PATTERN = "/^\\d{1,3}(\\.\\d{1,3}){3}\\/\\d{1,2}$/";
 
     public static String getIp(InetAddress address) {
         return address.getHostAddress();
     }
 
     public static boolean isValidIp(String ip) {
-        return Pattern.matches(IP_PATTERN, ip);
+        return (BuildFlags.ENABLE_IPTABLES && Pattern.matches(IP_MASK_PATTERN, ip)) || Pattern.matches(IP_PATTERN, ip);
     }
 
+    public static void runCommandAsync(final String cmdline){
+        Bukkit.getScheduler().runTaskAsynchronously(SinkBans.getInstance(), new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Process proc = Runtime.getRuntime().exec(cmdline);
+
+                    InputStream stdin = proc.getInputStream();
+                    InputStreamReader isr = new InputStreamReader(stdin);
+                    BufferedReader br = new BufferedReader(isr);
+
+                    String line;
+                    SinkBans.getInstance().getLogger().info("> " + cmdline);
+
+                    while ( (line = br.readLine()) != null)
+                        System.out.println(line);
+
+                    if(Debug.isEnabled()) {
+                        int exitVal = proc.waitFor();
+                        Debug.log("Process ExitCode: " + exitVal);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 }

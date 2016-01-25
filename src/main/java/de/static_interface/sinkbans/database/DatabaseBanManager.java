@@ -20,10 +20,13 @@ package de.static_interface.sinkbans.database;
 import static de.static_interface.sinklibrary.database.query.Query.eq;
 import static de.static_interface.sinklibrary.database.query.Query.from;
 
+import de.static_interface.sinkbans.BuildFlags;
 import de.static_interface.sinkbans.SinkBans;
+import de.static_interface.sinkbans.Util;
 import de.static_interface.sinkbans.model.Account;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.user.IngameUser;
+import de.static_interface.sinklibrary.util.Debug;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -48,6 +51,7 @@ public class DatabaseBanManager {
     }
 
     public static void unban(UUID uniqueId, String unbanner) {
+        Debug.logMethodCall(uniqueId, unbanner);
         for(BanRow row : getUserBans(SinkLibrary.getInstance().getIngameUser(uniqueId))){
             if(!row.isbanned) continue;
             from(SinkBans.getInstance().getBanTable())
@@ -61,10 +65,12 @@ public class DatabaseBanManager {
     }
 
     public static void unbanTempBan(UUID uniqueId, String unbanner) {
+        Debug.logMethodCall(uniqueId, unbanner);
         unbanTempBan(uniqueId, unbanner, System.currentTimeMillis());
     }
 
     public static void unbanTempBan(UUID uniqueId, String unbanner, long unbantimestamp) {
+        Debug.logMethodCall(uniqueId, unbanner, unbantimestamp);
         for(BanRow row : getUserBans(SinkLibrary.getInstance().getIngameUser(uniqueId))){
             if(!row.isbanned) continue;
             if(row.unbantimestamp == -1) continue; //perm ban
@@ -80,6 +86,9 @@ public class DatabaseBanManager {
     }
 
     public static void banIp(String ip, String banner) {
+        if(BuildFlags.ENABLE_IPTABLES){
+            Util.runCommandAsync("sudo /usr/sbin/iptables -A INPUT -s " + ip + " -j DROP");
+        }
         IpBanRow row = new IpBanRow();
         row.ip = ip;
         row.bantimestamp = System.currentTimeMillis();
@@ -126,6 +135,10 @@ public class DatabaseBanManager {
     }
 
     public static void unbanIp(String ip, String unbanner) {
+        if(BuildFlags.ENABLE_IPTABLES){
+            Util.runCommandAsync("sudo /usr/sbin/iptables -D INPUT -s " + ip + " -j DROP");
+        }
+
         from(SinkBans.getInstance().getIpBanTable())
                 .update()
                 .set("isbanned","?")

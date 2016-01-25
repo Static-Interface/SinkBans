@@ -24,6 +24,7 @@ import de.static_interface.sinkbans.database.DatabaseBanManager;
 import de.static_interface.sinklibrary.api.provider.BanProvider;
 import de.static_interface.sinklibrary.api.user.SinkUser;
 import de.static_interface.sinklibrary.user.IngameUser;
+import de.static_interface.sinklibrary.util.Debug;
 
 import java.util.List;
 import java.util.UUID;
@@ -69,6 +70,7 @@ public class SinkBansBanProvider implements BanProvider {
 
     @Override
     public void ban(IngameUser user, @Nullable SinkUser banner, @Nullable String reason, @Nullable Long timeOut) {
+        Debug.logMethodCall(user, banner == null ? null : banner.getName(), reason, timeOut);
         String bannerName = banner == null ? null : banner.getName();
 
         if(timeOut != null) {
@@ -93,6 +95,7 @@ public class SinkBansBanProvider implements BanProvider {
 
     @Override
     public void unban(IngameUser user, SinkUser unbanner) {
+        Debug.logMethodCall(user.getName(), unbanner.getName());
         String unbannerName = unbanner == null ? null : unbanner.getName();
         if(getTimeOut(user) != null) {
             DatabaseBanManager.unbanTempBan(user.getUniqueId(), unbannerName);
@@ -174,7 +177,7 @@ public class SinkBansBanProvider implements BanProvider {
     public Long getUnbanTime(IngameUser user) {
         BanRow lastBan = getLastBan(user);
         if(lastBan == null) return null;
-        return lastBan.unbantimestamp;
+        return lastBan.unbantimestamp <= 0 ? null : lastBan.unbantimestamp;
     }
 
     @Override
@@ -217,6 +220,7 @@ public class SinkBansBanProvider implements BanProvider {
 
     @Override
     public void setBanner(IngameUser user, SinkUser banner) {
+        Debug.logMethodCall(user.getName(), banner == null ? null : banner.getName());
         BanRow lastBan = getLastBan(user);
         if(lastBan == null) return;
         from(SinkBans.getInstance().getBanTable())
@@ -228,6 +232,7 @@ public class SinkBansBanProvider implements BanProvider {
 
     @Override
     public void setUnbanner(IngameUser user, SinkUser unbanner) {
+        Debug.logMethodCall(user.getName(), unbanner == null ? null : unbanner.getName());
         BanRow lastBan = getLastBan(user);
         if(lastBan == null) return;
         from(SinkBans.getInstance().getBanTable())

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - 2015 http://static-interface.de and contributors
+ * Copyright (c) 2013 - 2016 http://static-interface.de and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -15,33 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.static_interface.sinkbans.database;
+package de.static_interface.sinkbans;
 
-import de.static_interface.sinklibrary.database.Row;
-import de.static_interface.sinklibrary.database.annotation.Column;
-
-import javax.annotation.Nullable;
-
-public class IpBanRow implements Row {
-    @Column(primaryKey = true, autoIncrement = true)
-    public Integer id;
-
-    @Column
-    public String ip;
-
-    @Column
-    public long bantimestamp;
-
-    @Column
-    public long unbantimestamp;
-
-    @Column
-    public boolean isbanned;
-
-    @Column
-    public String bannedby;
-
-    @Column
-    @Nullable
-    public String unbannedby;
+public class BuildFlags {
+    public static boolean ENABLE_IPTABLES = true;
 }

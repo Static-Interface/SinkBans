@@ -55,8 +55,8 @@ public class SinkBans extends JavaPlugin {
         if(!checkDependencies()) return;
         instance = this;
         SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_bans"));
-        SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_ip_bans"));
-        SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_temp_bans"));
+        SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_bans_ip"));
+        SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_bans_temp"));
         SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_ban_requests"));
         SinkLibrary.getInstance().registerMessageStream(new BukkitBroadcastStream("sb_kicks"));
 

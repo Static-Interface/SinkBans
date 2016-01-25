@@ -17,7 +17,6 @@
 
 package de.static_interface.sinkbans.commands;
 
-import de.static_interface.sinkbans.database.DatabaseBanManager;
 import de.static_interface.sinklibrary.SinkLibrary;
 import de.static_interface.sinklibrary.api.command.SinkCommand;
 import de.static_interface.sinklibrary.api.command.annotation.DefaultPermission;
@@ -26,6 +25,7 @@ import de.static_interface.sinklibrary.api.command.annotation.Usage;
 import de.static_interface.sinklibrary.api.sender.IrcCommandSender;
 import de.static_interface.sinklibrary.user.IngameUser;
 import de.static_interface.sinklibrary.util.BukkitUtil;
+import de.static_interface.sinklibrary.util.Debug;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
@@ -55,19 +55,16 @@ public class BanCommand extends SinkCommand {
 
         IngameUser target = SinkLibrary.getInstance().getIngameUser(args[0], false);
 
+        Debug.log("Banning " + target.getName() + ", reason: " + reason);
         String targetName = target.isOnline() ? target.getName() : args[0];
         String prefix = BukkitUtil.getSenderName(sender);
 
-        String reasonPrefix = ChatColor.DARK_RED + "Gesperrt: ";
+        String reasonPrefixed = ChatColor.DARK_RED + "Gesperrt: ";
 
         if (target.isOnline()) {
-            target.getPlayer().kickPlayer(reasonPrefix + reason);
+            target.getPlayer().kickPlayer(reasonPrefixed + reason);
         }
 
-        DatabaseBanManager.unban(target.getUniqueId(), sender.getName()); // Unban all bans done before
-        DatabaseBanManager.unbanTempBan(target.getUniqueId(), sender.getName());
-
-        target.unban();
         target.ban(SinkLibrary.getInstance().getUser(sender), reason);
 
         String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " gesperrt: " + reason.trim();
