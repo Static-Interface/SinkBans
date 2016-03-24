@@ -47,8 +47,9 @@ public class UnbanCommand extends SinkCommand {
 
         DatabaseBanManager.unban(target.getUniqueId(), sender.getName());
         DatabaseBanManager.unbanTempBan(target.getUniqueId(), sender.getName());
-        target.unban();
-
+        //SinkUser unbanner = SinkLibrary.getInstance().getUser(sender);
+        //target.unban(unbanner); //Todo: implement this
+        DatabaseBanManager.unban(target.getUniqueId(), sender.getName());
         String msg = ChatColor.GOLD + prefix + ChatColor.GOLD + " hat " + ChatColor.RED + targetName + ChatColor.GOLD + " entsperrt.";
         SinkLibrary.getInstance().getMessageStream("sb_bans").sendMessage(null, msg, "sinkbans.notification");
         if (sender instanceof IrcCommandSender) {

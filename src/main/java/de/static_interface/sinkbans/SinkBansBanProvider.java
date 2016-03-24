@@ -95,7 +95,7 @@ public class SinkBansBanProvider implements BanProvider {
 
     @Override
     public void unban(IngameUser user, SinkUser unbanner) {
-        Debug.logMethodCall(user.getName(), unbanner.getName());
+        Debug.logMethodCall(user == null ? null : user.getName(), unbanner == null ? null : unbanner.getName());
         String unbannerName = unbanner == null ? null : unbanner.getName();
         if(getTimeOut(user) != null) {
             DatabaseBanManager.unbanTempBan(user.getUniqueId(), unbannerName);

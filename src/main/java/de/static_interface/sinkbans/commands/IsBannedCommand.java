@@ -46,7 +46,7 @@ public class IsBannedCommand extends SinkCommand {
             return true;
         } else {
             String
-                    reason = user.getBanTimeOut() > 0 ?
+                    reason = user.getBanTimeOut() != null && user.getBanTimeOut() > 0 ?
                              ChatColor.RED + "Zeitlich gesperrt vom Server fuer " + DateUtil.formatDateDiff(user.getBanTimeOut())
                                                       : user.getBanReason();
             reason = reason.trim();

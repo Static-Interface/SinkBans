@@ -158,7 +158,7 @@ public class EventListener implements Listener {
 
             IngameUser user = SinkLibrary.getInstance().getIngameUser(event.getUniqueId());
             if (isIp && !user.isBanned()) {
-                user.ban("Deien IP wurde gesperrt");
+                user.ban("Deine IP wurde gesperrt");
             }
             return true;
         }
