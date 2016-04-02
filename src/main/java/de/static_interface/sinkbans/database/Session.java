@@ -17,8 +17,8 @@
 
 package de.static_interface.sinkbans.database;
 
-import de.static_interface.sinklibrary.database.Row;
-import de.static_interface.sinklibrary.database.annotation.Column;
+import de.static_interface.sinksql.Row;
+import de.static_interface.sinksql.annotation.Column;
 
 import javax.annotation.Nullable;
 

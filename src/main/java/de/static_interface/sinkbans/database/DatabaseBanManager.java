@@ -17,8 +17,8 @@
 
 package de.static_interface.sinkbans.database;
 
-import static de.static_interface.sinklibrary.database.query.Query.eq;
-import static de.static_interface.sinklibrary.database.query.Query.from;
+import static de.static_interface.sinksql.query.Query.eq;
+import static de.static_interface.sinksql.query.Query.from;
 
 import de.static_interface.sinkbans.BuildFlags;
 import de.static_interface.sinkbans.SinkBans;

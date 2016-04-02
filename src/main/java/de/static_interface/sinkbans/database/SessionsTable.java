@@ -17,8 +17,8 @@
 
 package de.static_interface.sinkbans.database;
 
-import de.static_interface.sinklibrary.database.AbstractTable;
-import de.static_interface.sinklibrary.database.Database;
+import de.static_interface.sinksql.AbstractTable;
+import de.static_interface.sinksql.Database;
 
 public class SessionsTable extends AbstractTable<Session> {
     public SessionsTable(Database db) {

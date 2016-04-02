@@ -68,6 +68,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>de.static_interface</groupId>
+            <artifactId>sinksql</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>fr.xephi</groupId>
             <artifactId>authme</artifactId>
             <version>5.2-SNAPSHOT</version>
