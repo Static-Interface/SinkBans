@@ -65,7 +65,7 @@ public class SinkBans extends JavaPlugin {
         registerCommands();
         Bukkit.getPluginManager().registerEvents(new EventListener(), this);
         Bukkit.getPluginManager().registerEvents(new SessionsListener(), this);
-        DatabaseConnectionInfo info = new DatabaseConfiguration(getDataFolder(), "sinkbans", "sb");
+        DatabaseConnectionInfo info = new DatabaseConfiguration(getDataFolder(), "sinkbans", this);
         db = new MySqlDatabase(info);
         banTable = new BanTable(db);
         sessionsTable = new SessionsTable(db);
