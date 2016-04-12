@@ -17,13 +17,22 @@
 
 package de.static_interface.sinkbans;
 
+import de.static_interface.sinkbans.database.BanRequestsTable;
+import de.static_interface.sinkbans.database.BanTable;
+import de.static_interface.sinkbans.database.IpBanTable;
+import de.static_interface.sinkbans.database.SessionsTable;
+import de.static_interface.sinklibrary.database.DatabaseConfiguration;
 import de.static_interface.sinklibrary.util.Debug;
+import de.static_interface.sinksql.Database;
+import de.static_interface.sinksql.DatabaseConnectionInfo;
+import de.static_interface.sinksql.impl.database.MySqlDatabase;
 import org.bukkit.Bukkit;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
+import java.sql.SQLException;
 import java.util.regex.Pattern;
 
 public class Util {
@@ -64,5 +73,31 @@ public class Util {
                 }
             }
         });
+    }
+
+    //Work-Around for a class loading bug
+    static void loadDatabase(SinkBans instance){
+        DatabaseConnectionInfo info = new DatabaseConfiguration(instance.getDataFolder(), "sinkbans", instance);
+        Database db = new MySqlDatabase(info);
+        instance.setDb(db);
+        BanTable banTable = new BanTable(db);
+        instance.setBanTable(banTable);
+        SessionsTable sessionsTable = new SessionsTable(db);
+        instance.setSessionsTable(sessionsTable);
+        BanRequestsTable banRequestsTable = new BanRequestsTable(db);
+        instance.setBanRequestsTable(banRequestsTable);
+        IpBanTable ipBans = new IpBanTable(db);
+        instance.setIpBansTable(ipBans);
+        try {
+            db.connect();
+            banTable.create();
+            ipBans.create();
+            sessionsTable.create();
+            banRequestsTable.create();
+        } catch (SQLException e) {
+            instance.getLogger().severe("FAILED TO CREATE REQUIRED TABLES. SHUTDOWN...");
+            e.printStackTrace();
+            Bukkit.shutdown();
+        }
     }
 }
