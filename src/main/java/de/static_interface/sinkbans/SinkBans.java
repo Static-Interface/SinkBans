@@ -30,9 +30,11 @@ import de.static_interface.sinkbans.database.BanTable;
 import de.static_interface.sinkbans.database.IpBanTable;
 import de.static_interface.sinkbans.database.SessionsTable;
 import de.static_interface.sinklibrary.SinkLibrary;
+import de.static_interface.sinklibrary.database.DatabaseConfiguration;
 import de.static_interface.sinklibrary.stream.BukkitBroadcastStream;
 import de.static_interface.sinklibrary.util.Debug;
-import de.static_interface.sinksql.Database;
+import de.static_interface.sinksql.DatabaseConnectionInfo;
+import de.static_interface.sinksql.impl.database.MySqlDatabase;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -43,7 +45,7 @@ import java.util.logging.Level;
 public class SinkBans extends JavaPlugin {
 
     private static SinkBans instance;
-    private Database db;
+    private MySqlDatabase db;
     private BanTable banTable;
     private SessionsTable sessionsTable;
     private BanRequestsTable banRequestsTable;
@@ -63,8 +65,23 @@ public class SinkBans extends JavaPlugin {
         registerCommands();
         Bukkit.getPluginManager().registerEvents(new EventListener(), this);
         Bukkit.getPluginManager().registerEvents(new SessionsListener(), this);
-
-        Util.loadDatabase(this);
+        DatabaseConnectionInfo info = new DatabaseConfiguration(getDataFolder(), "sinkbans", this);
+        db = new MySqlDatabase(info);
+        banTable = new BanTable(db);
+        sessionsTable = new SessionsTable(db);
+        banRequestsTable = new BanRequestsTable(db);
+        ipBans = new IpBanTable(db);
+        try {
+            db.connect();
+            banTable.create();
+            ipBans.create();
+            sessionsTable.create();
+            banRequestsTable.create();
+        } catch (SQLException e) {
+            getLogger().severe("FAILED TO CREATE REQUIRED TABLES. SHUTDOWN...");
+            e.printStackTrace();
+            Bukkit.shutdown();
+        }
 
         // In case of reload
         for(Player p : Bukkit.getOnlinePlayers()){
@@ -125,25 +142,5 @@ public class SinkBans extends JavaPlugin {
 
     public IpBanTable getIpBanTable() {
         return ipBans;
-    }
-
-    void setDb(Database db) {
-        this.db = db;
-    }
-
-    void setBanTable(BanTable banTable) {
-        this.banTable = banTable;
-    }
-
-    void setSessionsTable(SessionsTable sessionsTable) {
-        this.sessionsTable = sessionsTable;
-    }
-
-    void setBanRequestsTable(BanRequestsTable banRequestsTable) {
-        this.banRequestsTable = banRequestsTable;
-    }
-
-    void setIpBansTable(IpBanTable ipBans) {
-        this.ipBans = ipBans;
     }
 }
